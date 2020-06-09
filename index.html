@@ -1,7 +1,81 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>test</title>
+</head>
 <body>
-<h1>Hello World</h1>
-<p>I'm hosted with GitHub Pages.</p>
+    
+
+    <canvas
+        class = "canvasStyle"
+        id = "CV" 
+        onmousedown = "mouseHandler(event)"
+        onmouseup = "mouseHandler(event)"
+        onmousemove = "mouseHandler(event)"
+        onwheel = "mouseHandler(event)"
+        width = "640" 
+        height = "640" 
+        style = "border:1px solid #000000;">
+    </canvas>
+
+    <canvas
+        id = "selectedColorCanvas"
+        width = "32"
+        height = "32" 
+        style = "border:1px solid #000000;">
+    </canvas>
+
+    <form class = "colorSlider">
+        <label for="red">Red: </label>
+        <input type="range" min = "0" max = "255" id="red" name="red"><br>
+
+    </form>
+
+    <form class = "colorSlider">
+        <label for="green">Green: </label>
+        <input type="range" min = "0" max = "255" id="green" name="green"><br>
+
+    </form>
+    
+    <form class = "colorSlider">
+        <label for="blue">Blue: </label>
+        <input type="range" min = "0" max = "255" id="blue" name="blue"><br>
+
+    </form>
+
+
+    <button id = "select_button" type = "button"> SELECT </button>
+    <button id = "paint_button" type = "button"> PAINT </button>
+    <button id = "erase_button" type = "button"> ERASE </button>
+
+    <button id = "resize_button" type = "button" onclick = "resizePopup()"> RESIZE </button>
+
+    <script>
+        //Fix this
+        function resizePopup(){
+            while(true){
+                var width = prompt("Width", 1);
+                var height = prompt("Height", 1);
+
+                if(width < 1 || width > 128 || height < 1 || height > 128){
+
+                }
+
+                else{
+                    resizeHandler(width, height);
+                    break;
+                }
+            }
+        }
+    </script>
+
+    <p id = "mousePos"></p>
+    <p id = "mouseEventName"> </p>
+    <p id = "test"> </p>
+
+    <script src = "app.js"> </script>
 </body>
 </html>
