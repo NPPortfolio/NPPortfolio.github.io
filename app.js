@@ -32,6 +32,8 @@ var CanvasViewport = {
 
     mouse_state: 0,
 
+    is_mouse_down: 0,
+
     init: function (canvas_name) {
 
         canvas = document.getElementById(canvas_name);
@@ -61,6 +63,7 @@ var CanvasViewport = {
         mouse_ypos = 0;
 
         mouse_state = cursor_states.PAINT;
+        is_mouse_down = false;
 
         for (var i = 0; i < img_data.data.length; i += 4) {
             img_data.data[i] = Math.floor(Math.random() * 256);
@@ -167,9 +170,48 @@ var CanvasViewport = {
         this.draw()
     },
 
-    mouseHandler: function (e) {
+    loadFromFile: function (file){
 
-        console.log(e.type);
+        const reader = new FileReader();
+
+        // Make sure the reader is loaded
+        reader.onload = function(){
+
+            var img = new Image;
+            
+            img.src = reader.result;
+
+            // Make sure the image is loaded
+            img.onload = function(){
+
+                console.log(img.width);
+                console.log(img.height);
+
+                console.log(img.name);
+
+                id_canvas.width = img.width;
+                id_canvas.height = img.height;
+        
+                // Possible fix for this
+                id_ctx.clearRect(0, 0, id_canvas.width, id_canvas.height);
+                id_ctx.drawImage(img, 0, 0, id_canvas.width, id_canvas.height);
+        
+                img_data = id_ctx.getImageData(0, 0, id_canvas.width, id_canvas.height);
+
+                id_scale_factor = 5;
+                id_xpos = 0;
+                id_ypos = 0;
+
+                //PROBLEM this can't be called but the objects variables can all be accessed, until fixed need to mouse over canvas once a file is loaded for it to show up
+                //draw();
+            }
+
+        }
+
+        reader.readAsDataURL(file);
+    },
+
+    mouseHandler: function (e) {
 
 
         mouse_xpos = e.clientX - canvas.getBoundingClientRect().left;
@@ -243,11 +285,10 @@ var CanvasViewport = {
             case "wheel":
 
                 // TODO: its scrolls in and out from the image's top left corner, scroll in and out based on current mouse position
-                console.log("wheel scrolled")
 
                 // This increases or decreases the size of the image by 15 precent every tick of the scroll wheel for a better zoom
                 id_scale_factor *= (1 - (.15 * Math.sign(e.deltaY)));
-                id_scale_factor = Math.min(200, Math.max(5, id_scale_factor));
+                id_scale_factor = Math.min(200, Math.max(1, id_scale_factor));
 
                 break;
         }
@@ -290,6 +331,11 @@ document.getElementById("green").addEventListener("change", function () {
 document.getElementById("blue").addEventListener("change", function () {
     blue = document.getElementById("blue").value;
     updateColorSelectCanvas();
+});
+
+document.getElementById("load_file").addEventListener("change", function () {
+    //TODO check for valid file either here, in html file or in the load from file function
+    CanvasViewport.loadFromFile(this.files[0]);
 });
 
 CanvasViewport.draw();
