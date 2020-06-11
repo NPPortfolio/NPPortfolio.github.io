@@ -1,364 +1,207 @@
+window.onload = main;
 
-const cursor_states = {
-    SELECT: 'select',
-    PAINT: 'paint',
-    ERASE: 'erase'
-}
+// Matrix libraries (mostly) from webglfundamentals site for simplicity instead of external 3d matrix libraries
+var m3 = {
 
-red = document.getElementById("red").value;
-green = document.getElementById("green").value;
-blue = document.getElementById("blue").value;
-alpha = 255;
+    // This assumes that both matrices are 3x3, for a function that accepts all dimensions represented as a 1d array, the rows and columns of each matrix could be passed as well
+    multiply: function (a, b) {
 
-var CanvasViewport = {
+        var result = [];
 
-    canvas: 0,
-    ctx: 0,
+        for(var a_row = 0; a_row < 3; a_row++){
+            for(var b_col = 0; b_col < 3; b_col++){
 
-    id_canvas: 0,
-    id_ctx: 0,
+                var a_index = (a_row *3)
+                var b_index = b_col;
 
-    id_xpos: 0,
-    id_ypos: 0,
-    id_scale_factor: 0,
+                result.push((a[a_index] * b[b_index]) + (a[a_index + 1] * b[b_index + 3]) + (a[a_index + 2] * b[b_index + 6]));
 
-    img_data: 0,
-
-    previous_mouse_xpos: 0,
-    previous_mouse_ypos: 0,
-
-    mouse_xpos: 0,
-    mouse_ypos: 0,
-
-    mouse_state: 0,
-
-    is_mouse_down: 0,
-
-    init: function (canvas_name) {
-
-        canvas = document.getElementById(canvas_name);
-        ctx = canvas.getContext("2d");
-
-        ctx.imageSmoothingEnabled = false;
-
-        // This sets up the 2nd canvas that the image data will completely fill up, 
-        // and the ctx drawImage function will scale it to the viewport canvas
-
-        id_canvas = document.createElement("canvas");
-        id_ctx = id_canvas.getContext("2d")
-
-        img_data = id_ctx.createImageData(4, 4);
-
-        id_canvas.width = img_data.width;
-        id_canvas.height = img_data.height;
-
-        id_xpos = 0;
-        id_ypos = 0;
-        id_scale_factor = 30;
-
-        previous_mouse_x = 0;
-        previous_mouse_ypos = 0;
-
-        mouse_xpos = 0;
-        mouse_ypos = 0;
-
-        mouse_state = cursor_states.PAINT;
-        is_mouse_down = false;
-
-        for (var i = 0; i < img_data.data.length; i += 4) {
-            img_data.data[i] = Math.floor(Math.random() * 256);
-            img_data.data[i + 1] = Math.floor(Math.random() * 256);
-            img_data.data[i + 2] = Math.floor(Math.random() * 256);
-            img_data.data[i + 3] = 255;
-        }
-
-    },
-
-    draw: function () {
-
-        //console.log("update function called");
-        id_ctx.clearRect(0, 0, id_canvas.width, id_canvas.height);
-        id_ctx.putImageData(img_data, 0, 0);
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(id_canvas, id_xpos, id_ypos, img_data.width * id_scale_factor, img_data.height * id_scale_factor);
-        this.drawGrid(id_xpos, id_ypos, img_data.width * id_scale_factor, img_data.height * id_scale_factor, img_data.width, img_data.height);
-    },
-
-    drawGrid: function (start_x, start_y, w, h, w_tiles, h_tiles) {
-
-        ctx.lineWidth = 1;
-
-        for (i = 0; i <= w; i += (w / w_tiles)) {
-            ctx.beginPath();
-            ctx.moveTo(start_x + i, start_y);
-            ctx.lineTo(start_x + i, start_y + h);
-            ctx.stroke();
-        }
-
-        for (i = 0; i <= h; i += (h / h_tiles)) {
-            ctx.beginPath();
-            ctx.moveTo(start_x, start_y + i);
-            ctx.lineTo(start_x + w, start_y + i);
-            ctx.stroke();
-        }
-    },
-
-    changeMouseState: function (state) {
-
-        //document.getElementById("mousePos").innerHTML = "in the change state function";
-        mouse_state = state;
-    },
-
-    modifyImageData: function (xval, yval, r, g, b, a) {
-
-        //document.getElementById("mousePos").innerHTML = xval + " " + yval + " " + img_data.width +  " " + img_data.height;
-
-        // where to move this check, mouse function?
-        if (((xval > img_data.width - 1) || (xval < 0)) || ((yval > img_data.height - 1) || yval < 0)) {
-            return;
-        }
-
-        var array_index = 4 * (xval + (yval * img_data.width));
-
-        // document.getElementById("mousePos").innerHTML = xval + " " + yval + " " + img_data.width +  " " + img_data.height + " " + array_index;
-
-        img_data.data[array_index] = r;
-        img_data.data[array_index + 1] = g;
-        img_data.data[array_index + 2] = b;
-        img_data.data[array_index + 3] = a;
-    },
-
-    resizeImage: function (w, h) {
-
-        var new_data = new ImageData(w, h);
-
-        //This loops through the original image in pixel coordiantes
-        rows:
-        for(var i = 0; i < img_data.height; i++){
-            for(var j = 0; j < img_data.width; j++){
-
-
-                // If there are no rows to copy over the original image, then the copying is done and you can break out of the function
-                if(i >= new_data.height){
-                    break rows;
-                }
-
-                // If there is no more space in the new image for the current row, you can move on to the next row
-                if(j >= new_data.width){
-                    break;
-                }
-
-                else{
-                    var old_array_index = 4 * (j + (i * img_data.width));
-                    var new_array_index = 4 * (j + (i * new_data.width));
-
-                    // Each pixel has 4 consecutive values (r,g,b,a) in the imageData data array
-                    for(var x = 0; x < 4; x++){
-                        new_data.data[new_array_index + x] = img_data.data[old_array_index + x]
-                    }
-
-                }
             }
         }
 
-        img_data = new_data;
+        return result;
 
-        id_canvas.width = new_data.width;
-        id_canvas.height = new_data.height;
-
-        this.draw()
     },
 
-    loadFromFile: function (file){
-
-        const reader = new FileReader();
-
-        // Make sure the reader is loaded
-        reader.onload = function(){
-
-            var img = new Image;
-            
-            img.src = reader.result;
-
-            // Make sure the image is loaded
-            img.onload = function(){
-
-                console.log(img.width);
-                console.log(img.height);
-
-                console.log(img.name);
-
-                id_canvas.width = img.width;
-                id_canvas.height = img.height;
-        
-                // Possible fix for this
-                id_ctx.clearRect(0, 0, id_canvas.width, id_canvas.height);
-                id_ctx.drawImage(img, 0, 0, id_canvas.width, id_canvas.height);
-        
-                img_data = id_ctx.getImageData(0, 0, id_canvas.width, id_canvas.height);
-
-                id_scale_factor = 5;
-                id_xpos = 0;
-                id_ypos = 0;
-
-                //PROBLEM this can't be called but the objects variables can all be accessed, until fixed need to mouse over canvas once a file is loaded for it to show up
-                //draw();
-            }
-
-        }
-
-        reader.readAsDataURL(file);
+    translation: function (tx, ty) {
+        return [
+            1, 0, 0,
+            0, 1, 0,
+            tx, ty, 1,
+        ];
     },
 
-    mouseHandler: function (e) {
+    rotation: function (angleInRadians) {
+        var c = Math.cos(angleInRadians);
+        var s = Math.sin(angleInRadians);
+        return [
+            c, -s, 0,
+            s, c, 0,
+            0, 0, 1,
+        ];
+    },
 
-
-        mouse_xpos = e.clientX - canvas.getBoundingClientRect().left;
-        mouse_ypos = e.clientY - canvas.getBoundingClientRect().top;
-
-        x_offset = mouse_xpos - id_xpos;
-        y_offset = mouse_ypos - id_ypos;
-
-        var img_data_index_x = Math.floor(x_offset / id_scale_factor);
-        var img_data_index_y = Math.floor(y_offset / id_scale_factor);
-
-        switch (e.type) {
-
-            // Mouse moves over the element
-            case "mousemove":
-
-                if (is_mouse_down && (mouse_state == cursor_states.SELECT)) {
-
-                    id_xpos += (mouse_xpos - previous_mouse_x);
-                    id_ypos += (mouse_ypos - previous_mouse_ypos);
-                }
-
-                if (is_mouse_down && (mouse_state == cursor_states.PAINT)) {
-
-                    this.modifyImageData(img_data_index_x, img_data_index_y, red, green, blue, alpha);
-                }
-
-                if (is_mouse_down && (mouse_state == cursor_states.ERASE)) {
-                    this.modifyImageData(img_data_index_x, img_data_index_y, 0, 0, 0, 0);
-                }
-
-                break;
-
-            // Mouse is pressed down on the element
-            case "mousedown":
-
-                is_mouse_down = true;
-
-                switch (mouse_state) {
-
-                    case cursor_states.SELECT:
-
-
-                        break;
-
-                    case cursor_states.PAINT:
-
-
-                        this.modifyImageData(img_data_index_x, img_data_index_y, red, green, blue, alpha);
-
-                        break;
-
-                    case cursor_states.ERASE:
-
-                        this.modifyImageData(img_data_index_x, img_data_index_y, 0, 0, 0, 0);
-
-                        break;
-
-                }
-
-                //document.getElementById("mousePos").innerHTML = mouse_xpos + " " + mouse_ypos
-                + " " + x_offset + " " + y_offset + " " + id_xpos + " " + id_ypos;
-                break;
-
-            // Mouse is released over the element
-            case "mouseup":
-                is_mouse_down = false;
-                break;
-
-            // Mouse wheel is scrolled over the element
-            case "wheel":
-
-                // TODO: its scrolls in and out from the image's top left corner, scroll in and out based on current mouse position
-
-                // This increases or decreases the size of the image by 15 precent every tick of the scroll wheel for a better zoom
-                id_scale_factor *= (1 - (.15 * Math.sign(e.deltaY)));
-                id_scale_factor = Math.min(200, Math.max(1, id_scale_factor));
-
-                break;
-        }
-
-        previous_mouse_x = mouse_xpos;
-        previous_mouse_ypos = mouse_ypos;
-
-        this.draw();
-    }
+    scaling: function (sx, sy) {
+        return [
+            sx, 0, 0,
+            0, sy, 0,
+            0, 0, 1,
+        ];
+    },
 };
 
-document.getElementById("mousePos").innerHTML = " test";
-CanvasViewport.init("CV");
+// Vertex shader program
 
-document.getElementById("select_button").addEventListener("click", function () {
-    //document.getElementById("mousePos").innerHTML = "select clicked";
-    CanvasViewport.changeMouseState(cursor_states.SELECT);
-});
+const vsSource = `
 
-document.getElementById("paint_button").addEventListener("click", function () {
-    //document.getElementById("mousePos").innerHTML = "paint clicked";
-    CanvasViewport.changeMouseState(cursor_states.PAINT);
-});
+    attribute vec4 aVertexPosition;
 
-document.getElementById("erase_button").addEventListener("click", function () {
-    //document.getElementById("mousePos").innerHTML = "erase clicked";
-    CanvasViewport.changeMouseState(cursor_states.ERASE);
-});
+    uniform mat3 uMatrix;
 
-document.getElementById("red").addEventListener("change", function () {
-    red = document.getElementById("red").value;
-    updateColorSelectCanvas();
-});
+    void main() {
+        gl_Position = aVertexPosition;
+        //vec4((uMatrix * vec3(aVertexPosition, 1)).xy, 1.0, 1.0);
+    }
+`;
 
-document.getElementById("green").addEventListener("change", function () {
-    green = document.getElementById("green").value;
-    updateColorSelectCanvas();
-});
+// Fragment shader program
+const fsSource = `
+    void main() {
+        gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+    }
+`;
 
-document.getElementById("blue").addEventListener("change", function () {
-    blue = document.getElementById("blue").value;
-    updateColorSelectCanvas();
-});
 
-document.getElementById("load_file").addEventListener("change", function () {
-    //TODO check for valid file either here, in html file or in the load from file function
-    CanvasViewport.loadFromFile(this.files[0]);
-});
+function main() {
 
-CanvasViewport.draw();
-updateColorSelectCanvas();
+    const canvas = document.getElementById("glCanvas");
+    const gl = canvas.getContext("webgl");
 
-/**
- * This function passes along the mouse events from the html canvas to the CanvasViewport singleton to handle. The html canvas couldn't send the events directly to
- * the CanvasViewport because... <-- Not sure about this tried many different things
- * 
- * @param {*} e The mouse event that is sent from the html canvas
- */
-function mouseHandler(e) {
-    CanvasViewport.mouseHandler(e);
+    if (gl === null) {
+        alert("Unable to initialize webgl, your browser may not support it");
+        return;
+    }
+
+    const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
+
+    
+
+    var vertexPositionLocation = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+
+    var matrixLocation = gl.getUniformLocation(shaderProgram, "uMatrix");
+
+     // Create a buffer to put positions in
+    var positionBuffer = gl.createBuffer();
+
+    // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+    var square = [
+        -0.5, -0.5,
+        -0.5, 0.5,
+        0, 0.5
+    ];
+
+    //need to type the array instead of default javascript variable
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(square), gl.STATIC_DRAW);
+
+    // Map the -1 +1 clip space to 0, canvas width, 0, canvas height
+    gl.viewport = (0, 0, gl.canvas.width, gl.canvas.height);
+
+    gl.clearColor(0,0,0,0);
+    gl.clear(gl.COLOR_BUFFER_BIT);
+
+    gl.useProgram(shaderProgram);
+
+    gl.enableVertexAttribArray(vertexPositionLocation);
+
+
+    // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
+    var size = 2;          // 2 components per iteration
+    var type = gl.FLOAT;   // the data is 32bit floats
+    var normalize = false; // don't normalize the data
+    var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
+    var offset = 0;        // start at the beginning of the buffer
+
+    // binds the current ARRAY_BUFFER to the attribute (vertexposition)
+    gl.vertexAttribPointer(vertexPositionLocation, size, type, normalize, stride, offset);
+
+    // This makes is so every 3 vertices form a triangle in the buffer
+    var primitiveType = gl.TRIANGLES;
+    var offset = 0;
+    var count = 3;
+    gl.drawArrays(primitiveType, offset, count);
+    /*
+    var x = m3.scaling(1, 1);
+
+    //gl.uniformMatrix3fv(matrixLocation, false, x);
+
+    
+
+    var x = [8, 4, 6, 3, 1, 3, 1, 24, 6];
+    var y = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+    z = m3.multiply(x, y);
+
+    console.log(z);
+    */
 }
 
-function resizeHandler(w, h){
-    CanvasViewport.resizeImage(w, h);
+//
+// creates a shader of the given type, uploads the source and
+// compiles it.
+//
+function loadShader(gl, type, source) {
+    const shader = gl.createShader(type);
+
+    // Send the source to the shader object
+
+    gl.shaderSource(shader, source);
+
+    // Compile the shader program
+
+    gl.compileShader(shader);
+
+    // See if it compiled successfully
+
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+        return null;
+    }
+
+    return shader;
 }
 
-function updateColorSelectCanvas() {
+// Mozilla tutorial code
+// Initialize a shader program, so WebGL knows how to draw our data
+//
+function initShaderProgram(gl, vsSource, fsSource) {
 
-    scc_ctx = document.getElementById("selectedColorCanvas").getContext("2d");
-    scc_ctx.fillStyle = 'rgb(' + red + ', ' + green + ', ' + blue + ')';
-    scc_ctx.fillRect(0, 0, 32, 32);
+    const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vsSource);
+    const fragmentShader = loadShader(gl, gl.FRAGMENT_SHADER, fsSource);
+
+    // Create the shader program
+
+    const shaderProgram = gl.createProgram();
+    gl.attachShader(shaderProgram, vertexShader);
+    gl.attachShader(shaderProgram, fragmentShader);
+    gl.linkProgram(shaderProgram);
+
+    // If creating the shader program failed, alert
+
+    if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
+        alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(shaderProgram));
+        gl.deleteProgram(shaderProgram);
+        return null;
+    }
+
+    return shaderProgram;
+}
+
+/*
+function drawScene(gl){
+
 
 }
+*/
