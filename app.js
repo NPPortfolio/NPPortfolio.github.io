@@ -1,5 +1,4 @@
 window.onload = main;
-
 // Matrix libraries (mostly) from webglfundamentals site for simplicity instead of external 3d matrix libraries
 var m3 = {
 
@@ -54,24 +53,34 @@ var m3 = {
 
 const vsSource = `
 
-    attribute vec4 aVertexPosition;
+    attribute vec2 aVertexPosition;
+    attribute vec2 aTexCoord;
 
-    uniform mat3 uMatrix;
+    //uniform mat3 uMatrix;
+
+    varying vec2 vTexCoord;
 
     void main() {
-        gl_Position = aVertexPosition;
-        //vec4((uMatrix * vec3(aVertexPosition, 1)).xy, 1.0, 1.0);
+        vTexCoord = aTexCoord;
+        gl_Position = vec4(aVertexPosition, 0.0, 1.0);
     }
 `;
 
 // Fragment shader program
 const fsSource = `
+
+    precision mediump float;
+
+    varying vec2 vTexCoord;
+
+    uniform sampler2D uTexture;
+
     void main() {
-        gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);
+        gl_FragColor = texture2D(uTexture, vTexCoord);
     }
 `;
 
-
+  
 function main() {
 
     const canvas = document.getElementById("glCanvas");
@@ -84,67 +93,109 @@ function main() {
 
     const shaderProgram = initShaderProgram(gl, vsSource, fsSource);
 
-    
-
     var vertexPositionLocation = gl.getAttribLocation(shaderProgram, "aVertexPosition");
+    var texCoordLocation = gl.getAttribLocation(shaderProgram, "aTexCoord");
+
+    console.log(texCoordLocation);
+    console.log(vertexPositionLocation);
 
     var matrixLocation = gl.getUniformLocation(shaderProgram, "uMatrix");
+    var textureLocation = gl.getUniformLocation(shaderProgram, "uTexture");
 
-     // Create a buffer to put positions in
-    var positionBuffer = gl.createBuffer();
+    //Two triangles to form the paint image todo change the primitive type for a smaller array
+    var square = new Float32Array([
 
-    // Bind it to ARRAY_BUFFER (think of it as ARRAY_BUFFER = positionBuffer)
+        0.0, 0.0,
+        0.0, 1.0,
+        1.0, 1.0,
+
+        0.0, 0.0,
+        1.0, 1.0,
+        1.0, 0.0,
+    ]);
+
+    var texCoords = new Float32Array([
+        0.0, 0.0,
+        0.0, 1.0,
+        1.0, 1.0,
+
+        0.0, 0.0,
+        1.0, 1.0,
+        1.0, 0.0,
+    ]);
+
+
+    const positionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, square, gl.STATIC_DRAW);
 
-    var square = [
-        -0.5, -0.5,
-        -0.5, 0.5,
-        0, 0.5
-    ];
+    const texCoordBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, texCoords, gl.STATIC_DRAW);
 
-    //need to type the array instead of default javascript variable
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(square), gl.STATIC_DRAW);
+    const texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 2, 2, 0, gl.RGBA, gl.UNSIGNED_BYTE,
+        new Uint8Array([
+            255, 0, 0, 255,
+            0, 255, 0, 255,
+            0, 0, 255, 255,
+            0, 0, 0, 255,
+        ]));
+        
+
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+
+
+
+
+
+
+
 
     // Map the -1 +1 clip space to 0, canvas width, 0, canvas height
     gl.viewport = (0, 0, gl.canvas.width, gl.canvas.height);
 
     gl.clearColor(0,0,0,0);
-    gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    gl.useProgram(shaderProgram);
 
+
+
+
+    // RENDER CODE
+
+    var size = 2;
+    var type = gl.FLOAT;
+    var normalize = false;
+    var stride = 0;
+    var offset = 0;
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
     gl.enableVertexAttribArray(vertexPositionLocation);
-
-
-    // Tell the attribute how to get data out of positionBuffer (ARRAY_BUFFER)
-    var size = 2;          // 2 components per iteration
-    var type = gl.FLOAT;   // the data is 32bit floats
-    var normalize = false; // don't normalize the data
-    var stride = 0;        // 0 = move forward size * sizeof(type) each iteration to get the next position
-    var offset = 0;        // start at the beginning of the buffer
-
     // binds the current ARRAY_BUFFER to the attribute (vertexposition)
     gl.vertexAttribPointer(vertexPositionLocation, size, type, normalize, stride, offset);
+
+    
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, texCoordBuffer);
+    gl.enableVertexAttribArray(texCoordLocation);
+    gl.vertexAttribPointer(texCoordLocation, size, type, normalize, stride, offset);
+
+    // call this after filling all data for the shader variables but before using gluniform
+    gl.useProgram(shaderProgram);
+
+    // Tell the shader to use texture unit 0 for u_texture
+    gl.uniform1i(textureLocation, 0);
 
     // This makes is so every 3 vertices form a triangle in the buffer
     var primitiveType = gl.TRIANGLES;
     var offset = 0;
-    var count = 3;
+    var count = 6;
     gl.drawArrays(primitiveType, offset, count);
-    /*
-    var x = m3.scaling(1, 1);
-
-    //gl.uniformMatrix3fv(matrixLocation, false, x);
-
-    
-
-    var x = [8, 4, 6, 3, 1, 3, 1, 24, 6];
-    var y = [1, 2, 3, 4, 5, 6, 7, 8, 9];
-
-    z = m3.multiply(x, y);
-
-    console.log(z);
-    */
 }
 
 //
