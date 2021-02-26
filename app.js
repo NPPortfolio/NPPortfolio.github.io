@@ -223,10 +223,10 @@ camera = new Camera();
 camera.lookAt([0, 0, 16, 1], [0, 0, 0, 1], [0, 1, 0, 0]);
 camera.perspective(1.5, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
 
-cvm = m4.identity();
-
 S = new Sphere(8, 128, 128);
-C = new Circle(1, 16);
+C = new Cursor(1, 16);
+
+C.view_matrix = m4.identity();
 
 draw_list = [S, C];
 
@@ -339,9 +339,6 @@ function draw(objList) {
 var ismousedown;
 var isrightmousedown;
 
-// BIG TODO
-// after the vertices are modified, you have to update the MeshVertices list so the mouse raytrace acts correctly
-
 var delta_x = 0;
 var delta_y = 0;
 
@@ -412,25 +409,10 @@ function mouseHandler(e) {
 
             else {
 
-                let cursor_position = ret[0];
                 let cursor_normal = ret[1];
 
-                // the last parameter is either camera normal or cursor normal depending on whether you want to match triangles normal
-                let test = quat.quaternionBetweenVectors([0, 0, 1, 0], cursor_normal);
-                let qrot = quat.quaternionToMatrix4(test);
-
-
-                C.setScaleMatrix(m4.scaling(1, 1, 1));
-                C.setRotationMatrix(qrot);
-                C.setTranslationMatrix(m4.translation(cursor_position[0], cursor_position[1], cursor_position[2]));
-                C.updateModelMatrix();
-
-                // negate the normal of the cursor to get the camera vector
-                let cursor_target = vec3.multiplyByConstant(cursor_normal, -1);
-
-                let cursor_up = quat.rotatePoint(test, [0, 1, 0, 0]);
-
-                cvm = createViewMatrixPTU(cursor_position, cursor_target, cursor_up);
+                // Set the cursors position and normal the the hit triangle's
+                C.setOrientation(ret[0], ret[1]);
 
 
                 // TODO: this is hacked together right now, make it cleaner by defining separate vertex functions
@@ -444,7 +426,7 @@ function mouseHandler(e) {
 
                     for (let i = 0; i < x.length; i++) {
 
-                        if (windingNumber(m4.multiplyVec3(cvm, S.getVertexByIndex(x[i]), 1), x1) > 0) {
+                        if (windingNumber(m4.multiplyVec3(C.view_matrix, S.getVertexByIndex(x[i]), 1), x1) > 0) {
 
                             let moveAlongVector = function (vertex, normal) {
                                 return [vertex[0] += normal[0] / 32, vertex[1] += normal[1] / 32, vertex[2] += normal[2] / 32];

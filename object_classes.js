@@ -377,7 +377,7 @@ class Sphere extends DrawableObject {
 
             this.edge_list[index1].push(index2);
             this.edge_list[index2].push(index3);
-            this.edge_list[index3].push(index1); //.push(index2, index3);
+            this.edge_list[index3].push(index1);
 
         }
     }
@@ -409,13 +409,8 @@ class Sphere extends DrawableObject {
         let visited = new Array();
         let queue = new Array();
 
-        //for(let i = 0; i < S.getVertices().length; i++){
-        //visited[i] = false;
-        //}
         visited.push(start_index);
         queue.push(start_index);
-
-        //visited[start_index] = true;
 
         let start_vertex = this.getVertexByIndex(start_index);
 
@@ -436,7 +431,7 @@ class Sphere extends DrawableObject {
                 // This is the index of the next vertex in the bfs
                 current_v_index = this.edge_list[queue_index][i];
                 current_vertex = this.getVertexByIndex(current_v_index);
-                //this.modifyVertex(current_vertex);
+
                 distance = vec3.length(vec3.subtract(start_vertex, current_vertex));
 
                 if (!visited.includes(current_v_index) && distance < max_distance) {
@@ -448,19 +443,16 @@ class Sphere extends DrawableObject {
         }
 
         return visited;
-
-        //console.log(num_hit);
-        //console.log(visited);
     }
 
-    updateNormals(change_vertices) {
+    updateNormals(changed_vertices) {
 
         let current = [];
 
-        for (let i = 0; i < change_vertices.length; i++) {
+        for (let i = 0; i < changed_vertices.length; i++) {
 
             // the list of triangle indices the vertex is in
-            current = this.vertex_triangle_list[change_vertices[i]];
+            current = this.vertex_triangle_list[changed_vertices[i]];
 
             let new_normal = [0, 0, 0];
 
@@ -480,13 +472,11 @@ class Sphere extends DrawableObject {
 
                 new_normal = vec3.add(new_normal, ret);
 
-                //console.log("normal changed");
-
             }
 
             new_normal = vec3.normalize(new_normal);
 
-            let normal_index = change_vertices[i] * 3;
+            let normal_index = changed_vertices[i] * 3;
             this.vertex_normals[normal_index] = new_normal[0];
             this.vertex_normals[normal_index + 1] = new_normal[1];
             this.vertex_normals[normal_index + 2] = new_normal[2];
@@ -495,26 +485,50 @@ class Sphere extends DrawableObject {
     }
 }
 
-// TODO: should be called Cursor
-class Circle extends DrawableObject {
+class Cursor extends DrawableObject {
 
     constructor(radius, num_segments) {
         super();
         this.primitiveType = gl.LINE_LOOP;
         this.setData(geometryCreator.createCircle(radius, num_segments));
-
+        this.view_matrix = m4.identity();
         this.cursor_view_matrix = m4.identity();
     }
 
     setData(data){
 
-        // The cursors aren't using the vertex normals... ?
+        // The cursors aren't using the vertex normals, change later
         this.indices = new Uint16Array(data[0]);
         this.vertex_normals = new Float32Array(data[1]);
         this.vertices = new Float32Array(data[1]);
     }
 
-    // TODO ???
+    setOrientation(position, normal){
+
+
+        // The cursor is defined in x y coordinates with no z value, so we rotate it with the [0, 0, 1] original normal
+        let q = quat.quaternionBetweenVectors([0, 0, 1], normal);
+
+        // TODO: this sets the matrices but not the arrays, need a better system, maybe update matrices
+        // after setting arrays
+        this.scale_matrix = m4.scaling(1, 1, 1);
+        this.rotation_matrix = quat.quaternionToMatrix4(q);
+        this.translation_matrix = m4.translation(position[0], position[1], position[2]);
+
+        this.updateModelMatrix();
+
+        // Also update the view matrix of the cursor now that you have q
+
+        // The normal is facing out from the mesh so negate it when modifying vertices
+        let target = vec3.multiplyByConstant(normal, -1);
+
+        // The up vector of the defined vertices of the cursor is the positive y axis
+        let up = quat.rotatePoint(q, [0, 1, 0]);
+        
+        // This is the inverse that puts the camera at the origin and moves everything else into coordinates relative to the camera
+        this.view_matrix = m4.inverse(m4.lookAt(position, target, up));
+    }
+
     setCursorViewMatrix(m) {
         this.cursor_view_matrix = m;
     }
