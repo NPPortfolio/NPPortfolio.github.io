@@ -1,51 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <title>Sculpt App</title>
 </head>
+
 <body>
-    <canvas
-        class = "canvasStyle"
-        id = "glCanvas"
-        onmousemove = mouseHandler(event)
-        onmousedown = mouseHandler(event)
-        onmouseup = mouseHandler(event)
-        onwheel = mouseHandler(event)
-        width = "640" 
-        height = "640" 
-        style = "border:1px solid #000000;">
+    <canvas class="canvasStyle" id="glCanvas" onmousemove=mouseHandler(event) onmousedown=mouseHandler(event)
+        onmouseup=mouseHandler(event) onwheel=mouseHandler(event) width="640" height="640"
+        style="border:1px solid #000000;">
     </canvas>
 
-    <p id = controls> LMB to sculpt, RMB to rotate camera, both to pan camera</p>
+    <p id=controls> LMB to sculpt, RMB to rotate camera, both to pan camera</p>
     <p> Cursors: </p>
-    <button 
-        id = cursor_circle
-        onclick = buttonHandler(this.id)> 
-        O 
+    <button id=cursor_circle onclick=buttonHandler(this.id)>
+        O
     </button>
 
-    <button 
-        id = cursor_star 
-        onclick = buttonHandler(this.id)>
-        * 
+    <button id=cursor_star onclick=buttonHandler(this.id)>
+        *
     </button>
 
-    <button 
-        id = cursor_random
-        onclick = buttonHandler(this.id)> 
-        ? 
+    <button id=cursor_random onclick=buttonHandler(this.id)>
+        ?
     </button>
 
+    <p> Functions: </p>
+    <label> Sculpt
+        <input id = "cursor_sculpt" type="radio" checked="checked" name="radio" onclick = buttonHandler(this.id)>
+        <span></span>
+    </label>
 
-    <script src = "./object_classes.js"> </script>
-    <script src = "./vec3.js"> </script>
-    <script src = "./quat.js"> </script>
-    <script src = "./m4.js"> </script>
-    <script src = "./geometryCreator.js"> </script>
-    <script src = "app.js"> </script>
+    <label> Color
+        <input id = "cursor_color" type="radio" name="radio" onclick = buttonHandler(this.id)>
+        <span ></span>
+    </label>
+
+
+    <form class="colorSlider">
+        <label for="red">Red: </label>
+        <input type="range" min="0" max="255" id="red" name="red"><br>
+    </form>
+
+    <form class="colorSlider">
+        <label for="green">Green: </label>
+        <input type="range" min="0" max="255" id="green" name="green"><br>
+    </form>
+
+    <form class="colorSlider">
+        <label for="blue">Blue: </label>
+        <input type="range" min="0" max="255" id="blue" name="blue"><br>
+    </form>
+
+    <canvas id="selectedColorCanvas" width="32" height="32" style="border:1px solid #000000;">
+    </canvas>
+
+
+    <script src="./object_classes.js"> </script>
+    <script src="./vec3.js"> </script>
+    <script src="./quat.js"> </script>
+    <script src="./m4.js"> </script>
+    <script src="./geometryCreator.js"> </script>
+    <script src="./cursorFunctions.js"> </script>
+    <script src="app.js"> </script>
 
 </body>
+
 </html>

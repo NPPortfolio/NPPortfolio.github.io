@@ -107,9 +107,10 @@ class DrawableObject extends Object {
         super();
         // Array containing one of each vertex in the object, the index array points to this to construct triangles
         // Each element in this array is another array of length 3 (a Vector3)
-        this.vertices = [];
-        //this.normals = new Array();
         this.indices = [];
+        this.vertices = [];
+        this.colors = [];
+        //this.normals = new Array();
 
         // This is an array of indices that represents the vertices that were changed since the last draw,
         // allowing for the buffering of sub data instead of all of the vertices again and again
@@ -125,6 +126,11 @@ class DrawableObject extends Object {
         this.vertex_triangle_list = [];
 
         this.primitiveType = gl.TRIANGLES;
+
+        this.cursor_function = null;
+        this.cursor_function_args = [];
+        
+        this.closest_index = 0;
     }
 
     modifyVertex(index, f) {
@@ -144,13 +150,46 @@ class DrawableObject extends Object {
         return [this.vertices[index], this.vertices[index + 1], this.vertices[index + 2]];
     }
 
-    setVertex(index, v) {
+    setVertexPosition(index, v) {
 
         let i = index * 3;
 
         this.vertices[i] = v[0];
         this.vertices[i + 1] = v[1];
         this.vertices[i + 2] = v[2];
+
+        this.updateVertexNormal(index);
+    }
+
+    addVertexPosition(index, v){
+
+        let i = index * 3;
+
+        this.vertices[i] += v[0];
+        this.vertices[i + 1] += v[1];
+        this.vertices[i + 2] += v[2];
+
+        this.updateVertexNormal(index);
+    }
+
+    setVertexColor(index, color){
+
+        let i = index * 4;
+
+        this.colors[i] = color[0];
+        this.colors[i + 1] = color[1];
+        this.colors[i + 2] = color[2];
+        this.colors[i + 3] = color[3];
+    }
+
+    addVertexColor(index, color){
+
+        let i = index * 4;
+
+        this.colors[i] = clamp(this.colors[i] + color[0], 0, 1);
+        this.colors[i + 1] = clamp(this.colors[i + 1] + color[1], 0, 1);
+        this.colors[i + 2] = clamp(this.colors[i + 2] + color[2], 0, 1);
+        this.colors[i + 3] = clamp(this.colors[i + 3] + color[2], 0, 1)
     }
 
     getVertices() {
@@ -163,6 +202,10 @@ class DrawableObject extends Object {
 
     getVertexNormals() {
         return this.vertex_normals;
+    }
+
+    getColors(){
+        return this.colors;
     }
 
     getBufferList() {
@@ -186,6 +229,148 @@ class DrawableObject extends Object {
             this.buffer_list.push(i);
         }
     }
+
+    applyCursor(C){
+
+        // In the future this value is the size of the cursor's boundingbox
+        let test_indices = this.BFS(this.closest_index, 2);
+
+        for(let i = 0; i < test_indices.length; i++){
+
+            let index = test_indices[i];
+
+            let point = this.getVertexByIndex(test_indices[i]);
+
+            if(C.isPointInside(point)){
+
+                // A solution for the cursor and the mesh needing to know things about each other for now is just
+                // passing the mesh along to the cursor function so it can call mesh functions that update the data,
+                // there is probably a better way in the future
+
+                // Also, this only passes one vertex and the mesh over at a time. This is probably inefficient
+                // and you need something better for a cursor function that uses all of the vertices inside it, like a smooth function
+                C.cursor_function(index, this);
+            }
+        }
+    }
+
+    // Breadth first search
+    BFS(start_index, max_distance) {
+
+        let visited = new Array();
+        let queue = new Array();
+
+        visited.push(start_index);
+        queue.push(start_index);
+
+        let start_vertex = this.getVertexByIndex(start_index);
+
+        let distance = [];
+        let current_vertex = [];
+        let current_v_index = 0;
+
+        let queue_index = 0;
+
+        while (queue.length != 0) {
+
+            queue_index = queue.shift();
+
+            for (let i = 0; i < this.edge_list[queue_index].length; i++) {
+
+                // This is the index of the next vertex in the bfs
+                current_v_index = this.edge_list[queue_index][i];
+                current_vertex = this.getVertexByIndex(current_v_index);
+
+                distance = vec3.length(vec3.subtract(start_vertex, current_vertex));
+
+                if (!visited.includes(current_v_index) && distance < max_distance) {
+                    visited.push(current_v_index);
+                    queue.push(current_v_index);
+                }
+            }
+        }
+
+        return visited;
+    }
+
+    updateNormals(changed_vertices) {
+
+        let current = [];
+
+        for (let i = 0; i < changed_vertices.length; i++) {
+
+            // the list of triangle indices the vertex is in
+            current = this.vertex_triangle_list[changed_vertices[i]];
+
+            let new_normal = [0, 0, 0];
+
+            for (let j = 0; j < current.length; j++) {
+
+                // current[j] is the index of the triangle that the vertex is in
+                let indices_index = current[j] * 3;
+
+                let v0 = this.getVertexByIndex(this.indices[indices_index]);
+                let v1 = this.getVertexByIndex(this.indices[indices_index + 1]);
+                let v2 = this.getVertexByIndex(this.indices[indices_index + 2]);
+
+                let v0v1 = vec3.subtract(v1, v0);
+                let v0v2 = vec3.subtract(v2, v0);
+
+                let ret = vec3.cross(v0v1, v0v2);
+
+                new_normal = vec3.add(new_normal, ret);
+
+            }
+
+            new_normal = vec3.normalize(new_normal);
+
+            let normal_index = changed_vertices[i] * 3;
+            this.vertex_normals[normal_index] = new_normal[0];
+            this.vertex_normals[normal_index + 1] = new_normal[1];
+            this.vertex_normals[normal_index + 2] = new_normal[2];
+
+        }
+    }
+
+    updateVertexNormal(changed_index){
+
+        // the list of triangle indices the vertex is in
+        let triangle_indices = this.vertex_triangle_list[changed_index];
+
+        let new_normal = [0, 0, 0];
+
+
+        // This goes through every triangle the vertex is a part of and combines their new normals to get the
+        // updated Vertex normal
+        for(let i = 0; i < triangle_indices.length; i++){
+
+                // current[j] is the index of the triangle that the vertex is in
+                let indices_index = triangle_indices[i] * 3;
+
+                let v0 = this.getVertexByIndex(this.indices[indices_index]);
+                let v1 = this.getVertexByIndex(this.indices[indices_index + 1]);
+                let v2 = this.getVertexByIndex(this.indices[indices_index + 2]);
+
+                let v0v1 = vec3.subtract(v1, v0);
+                let v0v2 = vec3.subtract(v2, v0);
+
+                let ret = vec3.cross(v0v1, v0v2);
+
+                new_normal = vec3.add(new_normal, ret);
+        }
+
+        new_normal = vec3.normalize(new_normal);
+
+        // TODO: the problem where pointers are better, look into later
+        let normal_index = changed_index * 3;
+        this.vertex_normals[normal_index] = new_normal[0];
+        this.vertex_normals[normal_index + 1] = new_normal[1];
+        this.vertex_normals[normal_index + 2] = new_normal[2];
+
+
+    }
+
+
 }
 
 class Sphere extends DrawableObject {
@@ -310,6 +495,8 @@ class Sphere extends DrawableObject {
 
         let new_normals = [];
 
+        let new_colors = [];
+
         let v0 = [];
         let v1 = [];
         let v2 = [];
@@ -322,6 +509,10 @@ class Sphere extends DrawableObject {
         // The vertex normals are all set to [0, 0, 0] so the computed face normals can be added to them later
         for (let i = 0; i < this.vertices.length; i += 3) {
             new_normals.push(0, 0, 0);
+            //new_colors.push(Math.random(), Math.random(), Math.random(), 1);
+            new_colors.push(0, .3, .8, 1);
+            // kluge right now for testing, set the colors here
+            
         }
 
         for (let i = 0; i < this.indices.length; i += 3) {
@@ -363,6 +554,7 @@ class Sphere extends DrawableObject {
         }
 
         this.vertex_normals = new Float32Array(new_normals);
+        this.colors = new Float32Array(new_colors);
     }
 
     createEdgeList() {
@@ -403,88 +595,9 @@ class Sphere extends DrawableObject {
         radius * Math.cos(lat_angle),
         (radius * Math.sin(lat_angle)) * Math.cos(long_angle)];
     }
-
-    customBFS(start_index, max_distance) {
-
-        let visited = new Array();
-        let queue = new Array();
-
-        visited.push(start_index);
-        queue.push(start_index);
-
-        let start_vertex = this.getVertexByIndex(start_index);
-
-        let distance = [];
-        let current_vertex = [];
-        let current_v_index = 0;
-
-        let queue_index = 0;
-
-        let num_hit = 1;
-
-        while (queue.length != 0) {
-
-            queue_index = queue.shift();
-
-            for (let i = 0; i < this.edge_list[queue_index].length; i++) {
-
-                // This is the index of the next vertex in the bfs
-                current_v_index = this.edge_list[queue_index][i];
-                current_vertex = this.getVertexByIndex(current_v_index);
-
-                distance = vec3.length(vec3.subtract(start_vertex, current_vertex));
-
-                if (!visited.includes(current_v_index) && distance < max_distance) {
-                    visited.push(current_v_index);
-                    queue.push(current_v_index);
-                    num_hit++;
-                }
-            }
-        }
-
-        return visited;
-    }
-
-    updateNormals(changed_vertices) {
-
-        let current = [];
-
-        for (let i = 0; i < changed_vertices.length; i++) {
-
-            // the list of triangle indices the vertex is in
-            current = this.vertex_triangle_list[changed_vertices[i]];
-
-            let new_normal = [0, 0, 0];
-
-            for (let j = 0; j < current.length; j++) {
-
-                // current[j] is the index of the triangle that the vertex is in
-                let indices_index = current[j] * 3;
-
-                let v0 = this.getVertexByIndex(this.indices[indices_index]);
-                let v1 = this.getVertexByIndex(this.indices[indices_index + 1]);
-                let v2 = this.getVertexByIndex(this.indices[indices_index + 2]);
-
-                let v0v1 = vec3.subtract(v1, v0);
-                let v0v2 = vec3.subtract(v2, v0);
-
-                let ret = vec3.cross(v0v1, v0v2);
-
-                new_normal = vec3.add(new_normal, ret);
-
-            }
-
-            new_normal = vec3.normalize(new_normal);
-
-            let normal_index = changed_vertices[i] * 3;
-            this.vertex_normals[normal_index] = new_normal[0];
-            this.vertex_normals[normal_index + 1] = new_normal[1];
-            this.vertex_normals[normal_index + 2] = new_normal[2];
-
-        }
-    }
 }
 
+// TODO: this is something that is drawable, but it isnt really the same as a mesh, so restructure the object hierarchy
 class Cursor extends DrawableObject {
 
     constructor(radius, num_segments) {
@@ -492,7 +605,13 @@ class Cursor extends DrawableObject {
         this.primitiveType = gl.LINE_LOOP;
         this.setData(geometryCreator.createCircle(radius, num_segments));
         this.view_matrix = m4.identity();
-        this.cursor_view_matrix = m4.identity();
+        this.normal = [0, 0, 0];
+
+        this.color = [0, 0, 0, 1];
+
+        this.cursor_function = null;
+
+        this.functions = [];
     }
 
     setData(data){
@@ -501,10 +620,48 @@ class Cursor extends DrawableObject {
         this.indices = new Uint16Array(data[0]);
         this.vertex_normals = new Float32Array(data[1]);
         this.vertices = new Float32Array(data[1]);
+        this.setColors();
+    }
+
+    // Testing function to set the colors to black, not needed eventually
+    setColors(){
+
+        let new_colors = [];
+        for(let i = 0; i < this.vertices.length; i+= 3){
+            new_colors.push(0, 0, 0, 1);
+        }
+
+        this.colors = new Float32Array(new_colors);
+    }
+
+    // There should be a better way to do this
+    setColor(color){
+        this.color = color;
+    }
+
+    setRed(r){
+        this.color[0] = this.clamp255(r)/255;
+    }
+
+    setGreen(g){
+        this.color[1] = this.clamp255(g)/255;
+    }
+
+    setBlue(b){
+        this.color[2] = this.clamp255(b)/255;
+    }
+
+    setAlpha(a){
+        this.color[3] = this.clamp255(a)/255;
+    }
+
+    clamp255(x){
+        return clamp(x, 0, 255);
     }
 
     setOrientation(position, normal){
 
+        this.normal = normal;
 
         // The cursor is defined in x y coordinates with no z value, so we rotate it with the [0, 0, 1] original normal
         let q = quat.quaternionBetweenVectors([0, 0, 1], normal);
@@ -531,6 +688,22 @@ class Cursor extends DrawableObject {
 
     setCursorViewMatrix(m) {
         this.cursor_view_matrix = m;
+    }
+
+    // p_world is the world coordiantes of the point to test
+    isPointInside(p_world){
+
+        if (windingNumber(m4.multiplyVec3(this.view_matrix, p_world, 1), this.vertices) > 0) {
+            return true;
+        }
+
+        return false;
+    }
+
+    applyFunction(p_world){
+
+        return this.cursor_function(p_world);
+
     }
 }
 
@@ -575,13 +748,7 @@ class Camera extends Object {
 
     rotateAroundTarget(horizontal, vertical) {
 
-        // I J K define the vector, w is angle to rotate around vector
-
-        // Also have to add back the target to position when it works
-
-        // Also you need to change up vector for more seamless rotation at top and bottom
-
-        // TODO: creat the axis using horizontal and vertical and apply one single rotation ??? maybe not
+        // TODO: create the axis using horizontal and vertical and apply one single rotation? maybe not
         // The axis angle quaternion to rotate the point around: (0, 0, 1) is z axis, horizontal is the angle
 
         let pos_minus_target = vec3.subtract(this.position, this.target);
@@ -616,8 +783,8 @@ class Camera extends Object {
 
     updateLookAt() {
 
-        let zAxis = vec3.subtract(this.position, this.target);//vec4 subtract (position, vec4.add(this.position, this.direction));
-        // Have to do this when subtracting a vector from a point so the normalization doesn;t get messed up
+        let zAxis = vec3.subtract(this.position, this.target);
+        // Have to do this when subtracting a vector from a point so the normalization doesn't get messed up
         zAxis = vec3.normalize(zAxis);
         let xAxis = vec3.normalize(vec3.cross(this.up, zAxis));
         let yAxis = vec3.normalize(vec3.cross(zAxis, xAxis));
@@ -688,6 +855,10 @@ class Camera extends Object {
 
     getUp() {
         return this.up;
+    }
+
+    getDirection(){
+        return vec3.normalize(vec3.subtract(this.position, this.target));
     }
 
     setPosition(p) {

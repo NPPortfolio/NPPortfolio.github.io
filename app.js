@@ -1,14 +1,15 @@
 // Vertex shader program
 const vsSource = `
 
+    precision lowp float;
     attribute vec3 a_vertexPosition;
-    attribute vec3 a_texCoord;
+    attribute vec4 a_texCoord;
     attribute vec3 a_vertexNormal;
 
     uniform mat4 u_modelMatrix;
     uniform mat4 u_viewProjectionMatrix;
 
-    varying vec3 v_texCoord;
+    varying vec4 v_texCoord;
     varying vec3 v_vertexNormal;
 
     void main() {
@@ -21,14 +22,16 @@ const vsSource = `
 // Fragment shader program
 const fsSource = `
 
-    precision mediump float;
+    precision lowp float;
 
-    varying vec3 v_texCoord;
+    varying vec4 v_texCoord;
     varying vec3 v_vertexNormal;
 
     uniform sampler2D u_texture;
 
     uniform vec4 u_color;
+
+    uniform vec3 u_lightDirection;
 
     void main() {
         //gl_FragColor = texture2D(u_texture, v_texCoord);
@@ -36,12 +39,12 @@ const fsSource = `
 
         vec3 normal = normalize(v_vertexNormal);
 
-        float dot = dot(normal, normalize(vec3(0.7, 0.0, 0.7)));
+        float dot = dot(normal, normalize(u_lightDirection));
 
         // remember to put this back to 0
         float light = max(0.0, dot);
 
-        gl_FragColor = u_color;
+        gl_FragColor = v_texCoord;
         gl_FragColor.rgb *= light;
     }
 `;
@@ -190,6 +193,7 @@ uniformLocations = {
     modelMatrixLocation: gl.getUniformLocation(shaderProgram, "u_modelMatrix"),
     viewProjectionMatrixLocation: gl.getUniformLocation(shaderProgram, "u_viewProjectionMatrix"),
     colorLocation: gl.getUniformLocation(shaderProgram, "u_color"),
+    lightDirectionLocation: gl.getUniformLocation(shaderProgram, "u_lightDirection"),
 }
 
 uniformBuffers = {
@@ -226,7 +230,15 @@ camera.perspective(1.5, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
 S = new Sphere(8, 128, 128);
 C = new Cursor(1, 16);
 
+// clean later
+C.setRed(document.getElementById("red").value);
+C.setGreen(document.getElementById("green").value);
+C.setBlue(document.getElementById("blue").value);
+
+updateColorSelectCanvas();
+
 C.view_matrix = m4.identity();
+C.cursor_function = cursorFunctions.moveAlongNormal;
 
 draw_list = [S, C];
 
@@ -247,6 +259,7 @@ function init(draw_list) {
     let combined_vertices = new Array();
     let combined_indices = new Array();
     let combined_normals = new Array();
+    let combined_colors = new Array();
 
     let index_offset = 0;
 
@@ -256,6 +269,7 @@ function init(draw_list) {
         // You could also write your own concat function, but this is a one time step so it shouldn't affect performance
         combined_vertices = combined_vertices.concat(Array.from(draw_list[i].getVertices()));
         combined_normals = combined_normals.concat(Array.from(draw_list[i].getVertexNormals()));
+        combined_colors = combined_colors.concat(Array.from(draw_list[i].getColors()));
 
 
         // The indices can't be simply combined because they have to have an offset based on the objects before them
@@ -270,7 +284,9 @@ function init(draw_list) {
     // The custom buffer functions use glBufferData instead of BufferSubData, which is slower but more simple for a one time at start function
     bufferData("vertexPositionBuffer", new Float32Array(combined_vertices));
     bufferData("vertexNormalBuffer", new Float32Array(combined_normals));
-    bufferData("texCoordBuffer", new Float32Array(combined_vertices));
+
+    // This is not a texture yet but the name will eventually make sense when textures are added
+    bufferData("texCoordBuffer", new Float32Array(combined_colors));
 
     bufferIndexData("indexBuffer", new Uint16Array(combined_indices));
 
@@ -278,7 +294,7 @@ function init(draw_list) {
 
     ret += enableAttribArray("vertexPositionBuffer", "vertexPositionLocation", 3, gl.FLOAT, false, 0, 0);
     ret += enableAttribArray("vertexNormalBuffer", "vertexNormalLocation", 3, gl.FLOAT, false, 0, 0);
-    ret += enableAttribArray("texCoordBuffer", "texCoordLocation", 3, gl.FLOAT, false, 0, 0);
+    ret += enableAttribArray("texCoordBuffer", "texCoordLocation", 4, gl.FLOAT, false, 0, 0);
 
     if (ret != 0) {
         // TODO: proper error checking
@@ -319,8 +335,14 @@ function draw(objList) {
         gl.bindBuffer(gl.ARRAY_BUFFER, attributeBuffers["vertexNormalBuffer"]);
         gl.bufferSubData(gl.ARRAY_BUFFER, v_offset, obj.getVertexNormals());
 
+        gl.bindBuffer(gl.ARRAY_BUFFER, attributeBuffers["texCoordBuffer"]);
+        gl.bufferSubData(gl.ARRAY_BUFFER, v_offset, obj.getColors());
+
         gl.uniformMatrix4fv(uniformLocations.modelMatrixLocation, false, obj.getModelMatrix());
         gl.uniformMatrix4fv(uniformLocations.viewProjectionMatrixLocation, false, camera.getVP());
+
+        // Use the camera's current direction for the light source direction
+        gl.uniform3fv(uniformLocations.lightDirectionLocation, camera.getDirection());
 
         let i_size = obj.getIndices().length;
         let v_size = obj.getVertices().length;
@@ -404,40 +426,19 @@ function mouseHandler(e) {
             //console.timeEnd("raytrace");
 
             if (ret === null || ret[1] == 0) {
-                console.log("circle position null");
+
             }
 
             else {
 
-                let cursor_normal = ret[1];
-
                 // Set the cursors position and normal the the hit triangle's
                 C.setOrientation(ret[0], ret[1]);
+                S.closest_index = ret[2];
 
-
-                // TODO: this is hacked together right now, make it cleaner by defining separate vertex functions
                 if (ismousedown && !isrightmousedown) {
 
-                    let x = S.customBFS(ret[2], 2);
+                    S.applyCursor(C);
 
-                    let x1 = C.getVertices();
-
-                    let normal_updates = new Array();
-
-                    for (let i = 0; i < x.length; i++) {
-
-                        if (windingNumber(m4.multiplyVec3(C.view_matrix, S.getVertexByIndex(x[i]), 1), x1) > 0) {
-
-                            let moveAlongVector = function (vertex, normal) {
-                                return [vertex[0] += normal[0] / 32, vertex[1] += normal[1] / 32, vertex[2] += normal[2] / 32];
-                            }
-
-                            S.setVertex(x[i], moveAlongVector(S.getVertexByIndex(x[i]), cursor_normal));
-                            normal_updates.push(x[i])
-                        }
-                    }
-
-                    S.updateNormals(normal_updates);
                 }
             }
 
@@ -462,20 +463,28 @@ function mouseHandler(e) {
     draw(draw_list);
 }
 
-function buttonHandler(id){
-    
-    switch(id){
+function buttonHandler(id) {
+
+    switch (id) {
 
         case "cursor_circle":
             C.setData(geometryCreator.createCircle(2, 16));
             break;
-        
+
         case "cursor_star":
             C.setData(geometryCreator.createStar(2, 10));
             break;
-        
+
         case "cursor_random":
             C.setData(geometryCreator.createRandomCursor(2, 10));
+            break;
+
+        case "cursor_sculpt":
+            C.cursor_function = cursorFunctions.moveAlongNormal;
+            break;
+
+        case "cursor_color":
+            C.cursor_function = cursorFunctions.setColor;
             break;
     }
 
@@ -483,8 +492,31 @@ function buttonHandler(id){
     draw(draw_list);
 }
 
+document.getElementById("red").addEventListener("change", function () {
+    C.setRed(document.getElementById("red").value);
+    updateColorSelectCanvas();
+});
 
+document.getElementById("green").addEventListener("change", function () {
+    C.setGreen(document.getElementById("green").value);
+    updateColorSelectCanvas();
+});
 
+document.getElementById("blue").addEventListener("change", function () {
+    C.setBlue(document.getElementById("blue").value);
+    updateColorSelectCanvas();
+});
+
+function updateColorSelectCanvas() {
+
+    scc_canvas = document.getElementById("selectedColorCanvas");
+    scc_ctx = scc_canvas.getContext("2d");
+    scc_ctx.fillStyle = 'rgb(' + document.getElementById("red").value + ', ' + 
+                                 document.getElementById("green").value + ', ' + 
+                                 document.getElementById("blue").value + ')';
+    scc_ctx.fillRect(0, 0, scc_canvas.width, scc_canvas.height);
+
+}
 
 
 /**
@@ -725,4 +757,8 @@ function orthogonalVector(v) {
     if (v2_m >= v1_m && v2_m >= v3_m) return v2;
     if (v3_m >= v1_m && v3_m >= v2_m) return v3;
 
+}
+
+function clamp(x, min, max){
+    return Math.min(Math.max(x, min), max);
 }
