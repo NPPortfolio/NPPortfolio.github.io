@@ -125,7 +125,7 @@ class DrawableObject extends Object {
         // Vertex X has a list of triangle indices in this array to access?
         this.vertex_triangle_list = [];
 
-        this.primitiveType = gl.TRIANGLES;
+        this.primitiveType = 4; //gl.TRIANGLES
 
         this.cursor_function = null;
         this.cursor_function_args = [];
@@ -602,7 +602,7 @@ class Cursor extends DrawableObject {
 
     constructor(radius, num_segments) {
         super();
-        this.primitiveType = gl.LINE_LOOP;
+        this.primitiveType = 2; //gl.LINE_LOOP
         this.setData(geometryCreator.createCircle(radius, num_segments));
         this.view_matrix = m4.identity();
         this.normal = [0, 0, 0];

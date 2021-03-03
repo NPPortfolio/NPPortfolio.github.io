@@ -49,183 +49,15 @@ const fsSource = `
     }
 `;
 
-// Mozilla tutorial code
-// Initialize a shader program, so WebGL knows how to draw our data
-function initShaderProgram(vsSource, fsSource) {
-
-    const vertexShader = loadShader(gl.VERTEX_SHADER, vsSource);
-    const fragmentShader = loadShader(gl.FRAGMENT_SHADER, fsSource);
-
-    // Create the shader program
-    const program = gl.createProgram();
-    gl.attachShader(program, vertexShader);
-    gl.attachShader(program, fragmentShader);
-    gl.linkProgram(program);
-
-    // If creating the shader program failed, alert
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-        alert('Unable to initialize the shader program: ' + gl.getProgramInfoLog(program));
-        gl.deleteProgram(program);
-        return null;
-    }
-
-    return program;
-}
-
-// Mozilla tutorial code
-// creates a shader of the given type, uploads the source and compiles it
-function loadShader(type, source) {
-
-    const shader = gl.createShader(type);
-
-    // Send the source to the shader object
-    gl.shaderSource(shader, source);
-
-    // Compile the shader program
-    gl.compileShader(shader);
-
-    // See if it compiled successfully
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        alert('An error occurred compiling the shaders: ' + gl.getShaderInfoLog(shader));
-        gl.deleteShader(shader);
-        return null;
-    }
-
-    return shader;
-}
-
-function bufferData(buffer_name, data) {
-
-    let buffer = attributeBuffers[buffer_name];
-    if (buffer === null) {
-        console.log("Buffer: " + buffer_name + " not found");
-        return null;
-    }
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ARRAY_BUFFER, data, gl.DYNAMIC_DRAW);
-}
-
-function bufferIndexData(buffer_name, data) {
-    let buffer = indexBuffers[buffer_name];
-    if (buffer === null) {
-        console.log("Buffer: " + buffer_name + " not found");
-    }
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, data, gl.STATIC_DRAW);
-}
-
-function enableAttribArray(buffer_name, location_name, size, type, normalize, stride, offset) {
-
-    let buffer = attributeBuffers[buffer_name];
-    let location = attributeLocations[location_name];
-
-    if (buffer === null) {
-        console.log("Buffer: " + buffer_name + " not found");
-        return 1;
-    }
-
-    if (location === null) {
-        console.log("Location: " + location_name + " not found");
-        return 1;
-    }
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, attributeBuffers[buffer_name]);
-    gl.enableVertexAttribArray(attributeLocations[location_name]);
-    // binds the current ARRAY_BUFFER to the attribute (vertexposition)
-    gl.vertexAttribPointer(attributeLocations[location_name], size, type, normalize, stride, offset);
-    return 0;
-}
-
-function setTexture(texture_name, data) {
-
-    tex = textures[texture_name];
-    if (tex === null) {
-        console.log("Texture: " + texture_name + " not found");
-        return;
-    }
-
-    gl.bindTexture(gl.TEXTURE_2D, tex);
-    // todo: this only accepts 2 by 2 textures, change this to get width and height of the texture, maybe using the data dimensions or a texture object
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 2, 2, 0, gl.RGBA, gl.UNSIGNED_BYTE, data);
-
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
-}
-
-/*
-// Just one pixel for now
-function modifyTexture(x, y, r, g, b, a) {
-
-    gl.texSubImage2D(gl.TEXTURE_2D, 0, x, y, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([r, g, b, a]));
-}
-*/
-
-
-canvas = document.getElementById("glCanvas");
-gl = canvas.getContext("webgl");
-
-if (gl === null) {
-    alert("Unable to initialize webgl, your browser may not support it");
-    //return null;
-}
-
-shaderProgram = initShaderProgram(vsSource, fsSource);
-
-if (shaderProgram === null) {
-    alert("Shader initialization failed");
-    //return null;
-}
-
-gl.useProgram(shaderProgram);
-
-// This disables the right click menu for the canvas, so the rmb can be used for camera panning
-canvas.oncontextmenu = function (e) {
-    e.preventDefault();
-};
-
-
-
-// A bunch of arrays for holding the locations of the shader program variables
-// In a more complex system these could be populated automatically by looking at the shader programs
-uniformLocations = {
-    modelMatrixLocation: gl.getUniformLocation(shaderProgram, "u_modelMatrix"),
-    viewProjectionMatrixLocation: gl.getUniformLocation(shaderProgram, "u_viewProjectionMatrix"),
-    colorLocation: gl.getUniformLocation(shaderProgram, "u_color"),
-    lightDirectionLocation: gl.getUniformLocation(shaderProgram, "u_lightDirection"),
-}
-
-uniformBuffers = {
-
-}
-
-attributeLocations = {
-
-    vertexPositionLocation: gl.getAttribLocation(shaderProgram, "a_vertexPosition"),
-    vertexNormalLocation: gl.getAttribLocation(shaderProgram, "a_vertexNormal"),
-    texCoordLocation: gl.getAttribLocation(shaderProgram, "a_texCoord"),
-
-}
-
-attributeBuffers = {
-    vertexPositionBuffer: gl.createBuffer(),
-    vertexNormalBuffer: gl.createBuffer(),
-    texCoordBuffer: gl.createBuffer()
-}
-
-indexBuffers = {
-    indexBuffer: gl.createBuffer(),
-}
-
-textures = {
-    //texture: gl.createTexture()
-}
+state = new glState("glCanvas");
+state.initShaderProgram(vsSource, fsSource);
 
 camera = new Camera();
 
 camera.lookAt([0, 0, 16, 1], [0, 0, 0, 1], [0, 1, 0, 0]);
-camera.perspective(1.5, canvas.clientWidth / canvas.clientHeight, 0.1, 100);
+camera.perspective(1.5, state.canvas.clientWidth / state.canvas.clientHeight, 0.1, 100);
+
+state.camera = camera;
 
 S = new Sphere(8, 128, 128);
 C = new Cursor(1, 16);
@@ -242,119 +74,10 @@ C.cursor_function = cursorFunctions.moveAlongNormal;
 
 draw_list = [S, C];
 
-init(draw_list);
-draw(draw_list);
+state.draw_list = draw_list;
 
-
-
-// In order to initialize the attribute buffers, we need to buffer all of the vertices and indices combined
-// so we can then buffer in sub data
-function init(draw_list) {
-
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffers.indexBuffer);
-
-    // Not sure where to put this
-    gl.uniform4fv(uniformLocations.colorLocation, [0.0, 1.0, 0.0, 1.0]);
-
-    let combined_vertices = new Array();
-    let combined_indices = new Array();
-    let combined_normals = new Array();
-    let combined_colors = new Array();
-
-    let index_offset = 0;
-
-    for (let i = 0; i < draw_list.length; i++) {
-
-        // Note: you have to use Array.from because javascript concat does not work with typed arrays
-        // You could also write your own concat function, but this is a one time step so it shouldn't affect performance
-        combined_vertices = combined_vertices.concat(Array.from(draw_list[i].getVertices()));
-        combined_normals = combined_normals.concat(Array.from(draw_list[i].getVertexNormals()));
-        combined_colors = combined_colors.concat(Array.from(draw_list[i].getColors()));
-
-
-        // The indices can't be simply combined because they have to have an offset based on the objects before them
-        for (let j = 0; j < draw_list[i].getIndices().length; j++) {
-            combined_indices.push(draw_list[i].getIndices()[j] + index_offset);
-        }
-
-        index_offset += draw_list[i].getVertices().length / 3;
-
-    }
-
-    // The custom buffer functions use glBufferData instead of BufferSubData, which is slower but more simple for a one time at start function
-    bufferData("vertexPositionBuffer", new Float32Array(combined_vertices));
-    bufferData("vertexNormalBuffer", new Float32Array(combined_normals));
-
-    // This is not a texture yet but the name will eventually make sense when textures are added
-    bufferData("texCoordBuffer", new Float32Array(combined_colors));
-
-    bufferIndexData("indexBuffer", new Uint16Array(combined_indices));
-
-    let ret = 0;
-
-    ret += enableAttribArray("vertexPositionBuffer", "vertexPositionLocation", 3, gl.FLOAT, false, 0, 0);
-    ret += enableAttribArray("vertexNormalBuffer", "vertexNormalLocation", 3, gl.FLOAT, false, 0, 0);
-    ret += enableAttribArray("texCoordBuffer", "texCoordLocation", 4, gl.FLOAT, false, 0, 0);
-
-    if (ret != 0) {
-        // TODO: proper error checking
-        console.log("Enabling the attribute arrays went wrong");
-        return;
-    }
-
-    // Map the -1 +1 clip space to 0, canvas width, 0, canvas height
-    gl.viewport = (0, 0, gl.canvas.width, gl.canvas.height);
-
-    gl.enable(gl.DEPTH_TEST);
-    gl.depthFunc(gl.LESS);
-    gl.enable(gl.CULL_FACE);
-
-    gl.clearColor(0, 0, 0, 0);
-}
-
-function draw(objList) {
-
-    //console.time("draw");
-
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    let v_offset = 0;
-    let i_offset = 0;
-
-    for (let i = 0; i < objList.length; i++) {
-
-        let obj = objList[i];
-
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffers.indexBuffer);
-
-        // There used to be code for only buffering the vertices that were changed here, for now the performance cost is not as important
-        // as the other issues, so this could be a future thing to implement
-        gl.bindBuffer(gl.ARRAY_BUFFER, attributeBuffers["vertexPositionBuffer"]);
-        gl.bufferSubData(gl.ARRAY_BUFFER, v_offset, obj.getVertices());
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, attributeBuffers["vertexNormalBuffer"]);
-        gl.bufferSubData(gl.ARRAY_BUFFER, v_offset, obj.getVertexNormals());
-
-        gl.bindBuffer(gl.ARRAY_BUFFER, attributeBuffers["texCoordBuffer"]);
-        gl.bufferSubData(gl.ARRAY_BUFFER, v_offset, obj.getColors());
-
-        gl.uniformMatrix4fv(uniformLocations.modelMatrixLocation, false, obj.getModelMatrix());
-        gl.uniformMatrix4fv(uniformLocations.viewProjectionMatrixLocation, false, camera.getVP());
-
-        // Use the camera's current direction for the light source direction
-        gl.uniform3fv(uniformLocations.lightDirectionLocation, camera.getDirection());
-
-        let i_size = obj.getIndices().length;
-        let v_size = obj.getVertices().length;
-
-        // The * 2 is because the size of the unsigned short is 2 bytes
-        gl.drawElements(obj.primitiveType, i_size, gl.UNSIGNED_SHORT, i_offset * 2);
-
-        v_offset += v_size;
-        i_offset += i_size;
-    }
-}
-
+state.init(draw_list);
+state.draw(draw_list);
 
 
 
@@ -372,7 +95,7 @@ var mouse_y;
 
 function mouseHandler(e) {
 
-    var rect = canvas.getBoundingClientRect();
+    var rect = state.canvas.getBoundingClientRect();
 
     ndc_x = ((2 * (e.clientX - rect.left)) / rect.width) - 1;
     ndc_y = - (((2 * (e.clientY - rect.top)) / rect.height) - 1);
@@ -460,7 +183,7 @@ function mouseHandler(e) {
 
     }
 
-    draw(draw_list);
+    state.draw(draw_list);
 }
 
 function buttonHandler(id) {
@@ -488,8 +211,9 @@ function buttonHandler(id) {
             break;
     }
 
-    init(draw_list);
-    draw(draw_list);
+    // Ideally you wouldn't initialize everything again and only change the cursor's data, shortcut for now
+    state.init(draw_list);
+    state.draw(draw_list);
 }
 
 document.getElementById("red").addEventListener("change", function () {
