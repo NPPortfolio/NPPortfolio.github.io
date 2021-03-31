@@ -1,5 +1,5 @@
 // This should be a singleton, not sure which pattern to use for it but for now a class will do
-// The class structure also requires a huge use of "this", which for now is mostly used to keep the main app more concise, 
+// The class structure also requires a huge use of "this", which for now is mostly used to keep the main app file more concise, 
 // but I will look for a better way to do this in the future
 class glState {
 
@@ -29,7 +29,6 @@ class glState {
     }
 
     // Mozilla tutorial code
-    // Initialize a shader program, so Webthis.gl knows how to draw our data
     initShaderProgram(vsSource, fsSource) {
 
         const vertexShader = this.loadShader(this.gl.VERTEX_SHADER, vsSource);
@@ -56,7 +55,7 @@ class glState {
 
     // Right now this function is completely hardcoded so whenever a uniform, varying, or other variable is added to the shader program
     // I create these values accordingly. In a better system there would be a function to create this data by parsing the shader programs,
-    // and there are certain utility libraries to do this, but to keep this prototype program small I add them manually
+    // and there are utility libraries to do this, but to keep this prototype program small I add them manually
     populateShaderVariables(program) {
 
         this.uniformLocations = {
@@ -203,18 +202,18 @@ class glState {
 
             // Note: you have to use Array.from because javascript concat does not work with typed arrays
             // You could also write your own concat function, but this is a one time step so it shouldn't affect performance
-            combined_vertices = combined_vertices.concat(Array.from(draw_list[i].getVertices()));
+            combined_vertices = combined_vertices.concat(Array.from(draw_list[i].getVertexPositions()));
             combined_normals = combined_normals.concat(Array.from(draw_list[i].getVertexNormals()));
             combined_colors = combined_colors.concat(Array.from(draw_list[i].getColors()));
 
 
             // The indices can't be simply combined because they have to have an offset based on the objects before them
-            for (let j = 0; j < draw_list[i].getIndices().length; j++) {
+           for (let j = 0; j < draw_list[i].getNumIndices(); j++) {
                 combined_indices.push(draw_list[i].getIndices()[j] + index_offset);
+                
             }
 
-            index_offset += draw_list[i].getVertices().length / 3;
-
+            index_offset += draw_list[i].getNumVertices();
         }
 
         // The custom buffer functions use glBufferData instead of BufferSubData, which is slower but more simple for a one time at start function
@@ -266,7 +265,7 @@ class glState {
             // There used to be code for only buffering the vertices that were changed here, for now the performance cost is not as important
             // as the other issues, so this could be a future thing to implement
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.attributeBuffers["vertexPositionBuffer"]);
-            this.gl.bufferSubData(this.gl.ARRAY_BUFFER, v_offset, obj.getVertices());
+            this.gl.bufferSubData(this.gl.ARRAY_BUFFER, v_offset, obj.getVertexPositions());
 
             this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.attributeBuffers["vertexNormalBuffer"]);
             this.gl.bufferSubData(this.gl.ARRAY_BUFFER, v_offset, obj.getVertexNormals());
@@ -280,8 +279,8 @@ class glState {
             // Use the camera's current direction for the light source direction
             this.gl.uniform3fv(this.uniformLocations.lightDirectionLocation, this.camera.getDirection());
 
-            let i_size = obj.getIndices().length;
-            let v_size = obj.getVertices().length;
+            let i_size = obj.getNumIndices();
+            let v_size = obj.getNumVertices();
 
             // The * 2 is because the size of the unsigned short is 2 bytes
             this.gl.drawElements(obj.primitiveType, i_size, this.gl.UNSIGNED_SHORT, i_offset * 2);

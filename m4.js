@@ -55,12 +55,125 @@ var m4 = {
         ];
     },
 
+    multiplyTest: function (a, b) {
+
+        var a00 = a[0 * 4 + 0];
+        var a01 = a[0 * 4 + 1];
+        var a02 = a[0 * 4 + 2];
+        var a03 = a[0 * 4 + 3];
+        var a10 = a[1 * 4 + 0];
+        var a11 = a[1 * 4 + 1];
+        var a12 = a[1 * 4 + 2];
+        var a13 = a[1 * 4 + 3];
+        var a20 = a[2 * 4 + 0];
+        var a21 = a[2 * 4 + 1];
+        var a22 = a[2 * 4 + 2];
+        var a23 = a[2 * 4 + 3];
+        var a30 = a[3 * 4 + 0];
+        var a31 = a[3 * 4 + 1];
+        var a32 = a[3 * 4 + 2];
+        var a33 = a[3 * 4 + 3];
+        var b00 = b[0 * 4 + 0];
+        var b01 = b[0 * 4 + 1];
+        var b02 = b[0 * 4 + 2];
+        var b03 = b[0 * 4 + 3];
+        var b10 = b[1 * 4 + 0];
+        var b11 = b[1 * 4 + 1];
+        var b12 = b[1 * 4 + 2];
+        var b13 = b[1 * 4 + 3];
+        var b20 = b[2 * 4 + 0];
+        var b21 = b[2 * 4 + 1];
+        var b22 = b[2 * 4 + 2];
+        var b23 = b[2 * 4 + 3];
+        var b30 = b[3 * 4 + 0];
+        var b31 = b[3 * 4 + 1];
+        var b32 = b[3 * 4 + 2];
+        var b33 = b[3 * 4 + 3];
+
+        a[0] = b00 * a00 + b01 * a10 + b02 * a20 + b03 * a30;
+        a[1] = b00 * a01 + b01 * a11 + b02 * a21 + b03 * a31;
+        a[2] = b00 * a02 + b01 * a12 + b02 * a22 + b03 * a32;
+        a[3] = b00 * a03 + b01 * a13 + b02 * a23 + b03 * a33;
+        a[4] = b10 * a00 + b11 * a10 + b12 * a20 + b13 * a30;
+        a[5] = b10 * a01 + b11 * a11 + b12 * a21 + b13 * a31;
+        a[6] = b10 * a02 + b11 * a12 + b12 * a22 + b13 * a32;
+        a[7] = b10 * a03 + b11 * a13 + b12 * a23 + b13 * a33;
+        a[8] = b20 * a00 + b21 * a10 + b22 * a20 + b23 * a30;
+        a[9] = b20 * a01 + b21 * a11 + b22 * a21 + b23 * a31;
+        a[10] = b20 * a02 + b21 * a12 + b22 * a22 + b23 * a32;
+        a[11] = b20 * a03 + b21 * a13 + b22 * a23 + b23 * a33;
+        a[12] = b30 * a00 + b31 * a10 + b32 * a20 + b33 * a30;
+        a[13] = b30 * a01 + b31 * a11 + b32 * a21 + b33 * a31;
+        a[14] = b30 * a02 + b31 * a12 + b32 * a22 + b33 * a32;
+        a[15] = b30 * a03 + b31 * a13 + b32 * a23 + b33 * a33;
+    },
+
+    multiplyFill: function (a, b, fill){
+        var a00 = a[0 * 4 + 0];
+        var a01 = a[0 * 4 + 1];
+        var a02 = a[0 * 4 + 2];
+        var a03 = a[0 * 4 + 3];
+        var a10 = a[1 * 4 + 0];
+        var a11 = a[1 * 4 + 1];
+        var a12 = a[1 * 4 + 2];
+        var a13 = a[1 * 4 + 3];
+        var a20 = a[2 * 4 + 0];
+        var a21 = a[2 * 4 + 1];
+        var a22 = a[2 * 4 + 2];
+        var a23 = a[2 * 4 + 3];
+        var a30 = a[3 * 4 + 0];
+        var a31 = a[3 * 4 + 1];
+        var a32 = a[3 * 4 + 2];
+        var a33 = a[3 * 4 + 3];
+        var b00 = b[0 * 4 + 0];
+        var b01 = b[0 * 4 + 1];
+        var b02 = b[0 * 4 + 2];
+        var b03 = b[0 * 4 + 3];
+        var b10 = b[1 * 4 + 0];
+        var b11 = b[1 * 4 + 1];
+        var b12 = b[1 * 4 + 2];
+        var b13 = b[1 * 4 + 3];
+        var b20 = b[2 * 4 + 0];
+        var b21 = b[2 * 4 + 1];
+        var b22 = b[2 * 4 + 2];
+        var b23 = b[2 * 4 + 3];
+        var b30 = b[3 * 4 + 0];
+        var b31 = b[3 * 4 + 1];
+        var b32 = b[3 * 4 + 2];
+        var b33 = b[3 * 4 + 3];
+
+        fill[0] = b00 * a00 + b01 * a10 + b02 * a20 + b03 * a30;
+        fill[1] = b00 * a01 + b01 * a11 + b02 * a21 + b03 * a31;
+        fill[2] = b00 * a02 + b01 * a12 + b02 * a22 + b03 * a32;
+        fill[3] = b00 * a03 + b01 * a13 + b02 * a23 + b03 * a33;
+        fill[4] = b10 * a00 + b11 * a10 + b12 * a20 + b13 * a30;
+        fill[5] = b10 * a01 + b11 * a11 + b12 * a21 + b13 * a31;
+        fill[6] = b10 * a02 + b11 * a12 + b12 * a22 + b13 * a32;
+        fill[7] = b10 * a03 + b11 * a13 + b12 * a23 + b13 * a33;
+        fill[8] = b20 * a00 + b21 * a10 + b22 * a20 + b23 * a30;
+        fill[9] = b20 * a01 + b21 * a11 + b22 * a21 + b23 * a31;
+        fill[10] = b20 * a02 + b21 * a12 + b22 * a22 + b23 * a32;
+        fill[11] = b20 * a03 + b21 * a13 + b22 * a23 + b23 * a33;
+        fill[12] = b30 * a00 + b31 * a10 + b32 * a20 + b33 * a30;
+        fill[13] = b30 * a01 + b31 * a11 + b32 * a21 + b33 * a31;
+        fill[14] = b30 * a02 + b31 * a12 + b32 * a22 + b33 * a32;
+        fill[15] = b30 * a03 + b31 * a13 + b32 * a23 + b33 * a33;
+    },
+
     multiplyVec3: function (m, p, last) {
         return [
             (m[0] * p[0]) + (m[4] * p[1]) + (m[8] * p[2]) + (m[12] * last),
             (m[1] * p[0]) + (m[5] * p[1]) + (m[9] * p[2]) + (m[13] * last),
             (m[2] * p[0]) + (m[6] * p[1]) + (m[10] * p[2]) + (m[14] * last),
             (m[3] * p[0]) + (m[7] * p[1]) + (m[11] * p[2]) + (m[15] * last)];
+    },
+
+    multiplyVec3Test: function (m, p, fill){
+        fill[0] = (m[0] * p[0]) + (m[4] * p[1]) + (m[8] * p[2]);
+        fill[1] = (m[1] * p[0]) + (m[5] * p[1]) + (m[9] * p[2]);
+        fill[2] = (m[2] * p[0]) + (m[6] * p[1]) + (m[10] * p[2]);
+        fill[3] = (m[3] * p[0]) + (m[7] * p[1]) + (m[11] * p[2]);
+
     },
 
     identity: function () {
@@ -72,6 +185,26 @@ var m4 = {
         ]
     },
 
+    identityTest: function(fill){
+        fill[0] = 1;
+        fill[1] = 0;
+        fill[2] = 0;
+        fill[3] = 0;
+        fill[4] = 0;
+        fill[5] = 1;
+        fill[6] = 0;
+        fill[7] = 0;
+        fill[8] = 0;
+        fill[9] = 0;
+        fill[10] = 1;
+        fill[11] = 0;
+        fill[12] = 0;
+        fill[13] = 0;
+        fill[14] = 0;
+        fill[15] = 1;
+    
+    },
+
     translation: function (tx, ty, tz) {
         return [
             1, 0, 0, 0,
@@ -79,6 +212,14 @@ var m4 = {
             0, 0, 1, 0,
             tx, ty, tz, 1,
         ];
+    },
+
+    translationFill: function(tx, ty, tz, fill){
+
+        fill[12] = tx;
+        fill[13] = ty;
+        fill[14] = tz;
+
     },
 
     xRotation: function (angleInRadians) {
@@ -124,6 +265,13 @@ var m4 = {
             0, 0, sz, 0,
             0, 0, 0, 1,
         ];
+    },
+
+    scalingFill: function(sx, sy, sz, fill){
+        fill[0] = sx;
+        fill[5] = sy;
+        fill[10] = sz;
+        fill[15] = 1;
     },
 
     // Simplified functions using the ones above
@@ -184,9 +332,48 @@ var m4 = {
             cameraPosition[0],
             cameraPosition[1],
             cameraPosition[2],
-            1,
+            1
         ];
 
+    },
+
+    lookAtTest: function (cameraPosition, target, up, fill) {
+        
+        let zAxis = [0, 0, 0];
+        let yAxis = [0, 0, 0];
+        let xAxis = [0, 0, 0];
+
+        vec3.subtractTest2(cameraPosition, target, zAxis);
+        vec3.normalizeTest(zAxis);
+
+        //let zAxis = vec3.normalize(vec3.subtract(cameraPosition, target));
+
+        vec3.crossTest(up, zAxis, xAxis);
+        vec3.normalizeTest(xAxis);
+
+        //let xAxis = vec3.normalize(vec3.cross(up, zAxis));
+
+        vec3.crossTest(zAxis, xAxis, yAxis);
+        vec3.normalizeTest(yAxis);
+
+        //let yAxis = vec3.normalize(vec3.cross(zAxis, xAxis));
+
+        fill[0] = xAxis[0];
+        fill[1] = xAxis[1];
+        fill[2] = xAxis[2];
+        fill[3] = 0;
+        fill[4] = yAxis[0];
+        fill[5] = yAxis[1];
+        fill[6] = yAxis[2];
+        fill[7] = 0;
+        fill[8] = zAxis[0];
+        fill[9] = zAxis[1];
+        fill[10] = zAxis[2];
+        fill[11] = 0;
+        fill[12] = cameraPosition[0];
+        fill[13] = cameraPosition[1];
+        fill[14] = cameraPosition[2];
+        fill[15] = 1;
     },
 
     inverse: function (m) {

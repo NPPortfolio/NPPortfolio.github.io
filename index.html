@@ -30,13 +30,13 @@
 
     <p> Functions: </p>
     <label> Sculpt
-        <input id = "cursor_sculpt" type="radio" checked="checked" name="radio" onclick = buttonHandler(this.id)>
+        <input id="cursor_sculpt" type="checkbox" checked="checked" name="radio" onclick=buttonHandler(this.id)>
         <span></span>
     </label>
 
     <label> Color
-        <input id = "cursor_color" type="radio" name="radio" onclick = buttonHandler(this.id)>
-        <span ></span>
+        <input id="cursor_color" type="checkbox" name="radio" onclick=buttonHandler(this.id)>
+        <span></span>
     </label>
 
 
@@ -58,14 +58,17 @@
     <canvas id="selectedColorCanvas" width="32" height="32" style="border:1px solid #000000;">
     </canvas>
 
+    <p id = "test1"> </p>
+
     <!-- Eventually do this automatically-->
     <script src="./object_classes.js"> </script>
     <script src="./vec3.js"> </script>
     <script src="./quat.js"> </script>
     <script src="./m4.js"> </script>
     <script src="./geometryCreator.js"> </script>
-    <script src="./cursorFunctions.js"> </script>
-    <script src = "./glState.js"> </script>
+    <script src="./glState.js"> </script>
+    <script src="./AccelerationStructure.js"> </script>
+    <script src = "./DataArrays.js"></script>
     <script src="app.js"> </script>
 
 </body>

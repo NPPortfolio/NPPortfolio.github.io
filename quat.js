@@ -18,6 +18,13 @@ var quat = {
         return [-q[0], -q[1], -q[2], q[3]];
     },
 
+    inverseFill: function(q, fill){
+        fill[0] = -q[0];
+        fill[1] = -q[1];
+        fill[2] = -q[2];
+        fill[3] = q[3];
+    },
+
     fromAxisAngle(q) {
 
         let x = Math.sin(q[3] / 2);
@@ -34,6 +41,13 @@ var quat = {
 
         return [x, y, z, w];
 
+    },
+
+    multiplyFill: function (a, b, fill){
+        fill[0] = a[0] * b[3] + a[3] * b[0] + a[1] * b[2] - a[2] * b[1];
+        fill[1] = a[1] * b[3] + a[3] * b[1] + a[2] * b[0] - a[0] * b[2];
+        fill[2] = a[2] * b[3] + a[3] * b[2] + a[0] * b[1] - a[1] * b[0];
+        fill[3] = a[3] * b[3] - a[0] * b[0] - a[1] * b[1] - a[2] * b[2];
     },
 
     // Not sure what this is
@@ -95,6 +109,26 @@ var quat = {
 
     },
 
+    quaternionBetweenVectorsTest: function (v1, v2, quat) {
+
+        // possible check for same direction and opposite direction vectors
+        let axis = [0, 0, 0];
+        vec3.crossTest(v1, v2, axis);
+        vec3.normalizeTest(axis);
+        //let axis = vec3.normalize(vec3.cross(v1, v2));
+
+        let angle = Math.acos(vec3.dot(v1, v2));
+
+        let s = Math.sin(angle / 2);
+
+        //return [axis[0] * s, axis[1] * s, axis[2] * s, Math.cos(angle / 2)];
+        quat[0] = axis[0] * s;
+        quat[1] = axis[1] * s;
+        quat[2] = axis[2] * s;
+        quat[3] = Math.cos(angle/2);
+
+    },
+
     quaternionToMatrix4: function (q) {
 
         let len = this.length(q);
@@ -112,13 +146,53 @@ var quat = {
 
     },
 
+    quaternionToMatrix4Fill: function (q, fill){
+        
+        let len = this.length(q);
+        if (len < 0.0001) return m4.identity();
+
+        let s = 1 / (len * len);
+
+        fill[0] = 1 - 2 * s * (q[1] * q[1] + q[2] * q[2]);
+        fill[1] = 2 * s * (q[0] * q[1] + q[2] * q[3]);
+        fill[2] = 2 * s * (q[0] * q[2] - q[1] * q[3]);
+        fill[3] = 0;
+        fill[4] = 2 * s * (q[0] * q[1] - q[2] * q[3]);
+        fill[5] = 1 - 2 * s * (q[0] * q[0] + q[2] * q[2]);
+        fill[6] = 2 * s * (q[1] * q[2] + q[0] * q[3]);
+        fill[7] = 0;
+        fill[8] = 2 * s * (q[0] * q[2] + q[1] * q[3]);
+        fill[9] = 2 * s * (q[1] * q[2] - q[0] * q[3]);
+        fill[10] = 1 - 2 * s * (q[0] * q[0] + q[1] * q[1]);
+        fill[11] = 0;
+        fill[12] = 0;
+        fill[13] = 0;
+        fill[14] = 0;
+        fill[15] = 1;
+
+    },
+
     // Q is given in axis angle notation
     rotatePoint: function (q, p) {
 
         let p_ = [p[0], p[1], p[2], 1];
 
-        let ret = quat.multiply(quat.multiply(q, p_), quat.inverse(q));
-        return [ret[0], ret[1], ret[2]];
+        let r = quat.multiply(quat.multiply(q, p_), quat.inverse(q));
+        return r;
+    },
+
+    rotatePointFill: function (q, p, inv_q, fill, fill2){
+
+        p[3] = 1;
+
+        quat.multiplyFill(q, p, fill);
+        quat.inverseFill(q, inv_q);
+        quat.multiplyFill(fill, inv_q, fill2);
+
+        //quat.inverseFill(q, inv_q);
+        //quat.multiplyFill(p, inv_q, fill);
+        //quat.multiplyFill(q, fill, fill2);
+
     },
 
     testRotate: function (q, p) {
