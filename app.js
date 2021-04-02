@@ -70,6 +70,8 @@ S = new Mesh(data[0], data[1]);
 
 AS = new AccelerationStructure(S);
 
+R = new Raytracer();
+
 // clean later
 C.setRed(document.getElementById("red").value);
 C.setGreen(document.getElementById("green").value);
@@ -181,7 +183,7 @@ function mouseHandler(e) {
         case "mousemove":
 
             //console.time("raytrace");
-            let ret = intersectRayWithASGrid(camera.position, mouseWorldDirection, AS);
+            let ret = R.intersectRayWithASGrid(camera.position, mouseWorldDirection, AS);
             //console.timeEnd("raytrace");
 
             if (ret === null || ret[2] == -1) {
@@ -320,6 +322,154 @@ document.getElementById("cursor_color").checked = false;
 
 
 
+
+
+
+
+
+
+
+
+// Winding number algorithm for 2d inside outside test, taken from point in polygon wikipedia page footnote 6
+
+/**
+ * Tests if a point is to the left, right, or on an infinite line in 2d space
+ * 
+ * @param {Array} P0 The starting point of the infinite line P0P1
+ * @param {Array} P1 The second point of the infinite line P0P1
+ * @param {Array} P2 The point to test against the line
+ * 
+ * @return {number} >0 if P2 is left of P0P1
+ *                  =0 if P2 is on P0P1
+ *                  <0 if P2 is right of P0P1
+ * 
+ */
+function isLeft(P0, P1, P2) {
+
+    return ((P1[0] - P0[0]) * (P2[1] - P0[1]))
+        - ((P2[0] - P0[0]) * (P1[1] - P0[1]));
+
+}
+
+//garbage collection workaround
+let v1_winding = [0, 0, 0];
+let v2_winding = [0, 0, 0];
+/**
+ * Returns the winding number of a point with respect to a 2d polygon
+ * 
+ * @param {Array} P The point in 2d space to test in the polygon (x, y)
+ * @param {Array} vertices The vertices that define the polygon, where the last vertex is the same as the first
+ * 
+ * @return {number} The winding number of the point in the polygon (0 if it is outside the polygon), >0 if it is inside
+ */
+function windingNumber(P, vertices) {
+
+    let wn = 0;
+
+    //let v2 = [0, 0, 0];
+    //let v1 = [0, 0, 0];
+
+    for (let i = 0; i < vertices.length; i += 3) {
+
+        v1_winding[0] = vertices[i];
+        v1_winding[1] = vertices[i + 1];
+        v1_winding[2] = vertices[i + 2];
+        //  = [vertices[i], vertices[i + 1], vertices[i + 2]];
+
+        if (i == vertices.length - 3) {
+            //v2 = [vertices[0], vertices[1], vertices[2]];
+            v2_winding[0] = vertices[0];
+            v2_winding[1] = vertices[1];
+            v2_winding[2] = vertices[2];
+        }
+        else {
+            //v2 = [vertices[i + 3], vertices[i + 4], vertices[i + 5]];
+            v2_winding[0] = vertices[i + 3];
+            v2_winding[1] = vertices[i + 4];
+            v2_winding[2] = vertices[i + 5];
+        }
+
+        if (v1_winding[1] <= P[1]) {
+            if (v2_winding[1] > P[1]) {
+                if (isLeft(v1_winding, v2_winding, P) > 0) wn++;
+            }
+        }
+
+        else {
+            if (v2_winding[1] <= P[1]) {
+                if (isLeft(v1_winding, v2_winding, P) < 0) wn--;
+            }
+        }
+    }
+    return wn;
+}
+
+
+
+// This is only needed to create the view matrix of the cursor that flattens the vertices then checks for inside-outside
+function createViewMatrixPTU(position, target, up) {
+    var c = m4.lookAt(position, target, up);
+    // This is the inverse that puts the camera at the origin and moves everything else into coordinates relative to the camera
+    return m4.inverse(c);
+}
+
+// function to test other functions
+function check_expect(f, input, expected_out) {
+
+    if (f(input) != expected_out) {
+        return false;
+    }
+
+    return true;
+};
+
+// TODO: probably no longer needed
+// Returns an arbitrary vector orthogonal to v
+function orthogonalVector(v) {
+
+    let v1 = [0, v[2], -v[1], 0];
+    let v2 = [-v[2], 0, v[0], 0];
+    let v3 = [-v[1], v[0], 0, 0];
+
+    //There are very small optimizations for this, but this is more readable and shouldn't matter too much in performance
+    let v1_m = vec3.length(v1);
+    let v2_m = vec3.length(v2);
+    let v3_m = vec3.length(v3);
+
+    if (v1_m >= v2_m && v1_m >= v3_m) return v1;
+    if (v2_m >= v1_m && v2_m >= v3_m) return v2;
+    if (v3_m >= v1_m && v3_m >= v2_m) return v3;
+
+}
+
+function clamp(x, min, max) {
+    return Math.min(Math.max(x, min), max);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// old
+
+/**
 
 // In order to cut down on allocation all of the variables that the ray-grid intersection uses are defined out here in global space
 // This is obviously very messy and a major task moving forward in general is finding ways to define very frequently used variables only once
@@ -575,7 +725,7 @@ function intersectRayWithASGrid(ray_origin, ray_vector, grid) {
         if (v < 0 || (u + v) > 1) return false;
 
         // The distance of the triangle from the ray
-        t = (vec3.dot(v0v2, qvec)) * invDet;
+        let t = (vec3.dot(v0v2, qvec)) * invDet;
 
         // Triangle is behind ray
         if (t < 0) return false;
@@ -658,149 +808,7 @@ function rayBoxIntersect(ray_origin, ray_vector, grid) {
 
 
 
-
-
-
-
-
-// Winding number algorithm for 2d inside outside test, taken from point in polygon wikipedia page footnote 6
-
-/**
- * Tests if a point is to the left, right, or on an infinite line in 2d space
- * 
- * @param {Array} P0 The starting point of the infinite line P0P1
- * @param {Array} P1 The second point of the infinite line P0P1
- * @param {Array} P2 The point to test against the line
- * 
- * @return {number} >0 if P2 is left of P0P1
- *                  =0 if P2 is on P0P1
- *                  <0 if P2 is right of P0P1
- * 
- */
-function isLeft(P0, P1, P2) {
-
-    return ((P1[0] - P0[0]) * (P2[1] - P0[1]))
-        - ((P2[0] - P0[0]) * (P1[1] - P0[1]));
-
-}
-
-//garbage collection workaround
-let v1_winding = [0, 0, 0];
-let v2_winding = [0, 0, 0];
-/**
- * Returns the winding number of a point with respect to a 2d polygon
- * 
- * @param {Array} P The point in 2d space to test in the polygon (x, y)
- * @param {Array} vertices The vertices that define the polygon, where the last vertex is the same as the first
- * 
- * @return {number} The winding number of the point in the polygon (0 if it is outside the polygon), >0 if it is inside
- */
-function windingNumber(P, vertices) {
-
-    let wn = 0;
-
-    //let v2 = [0, 0, 0];
-    //let v1 = [0, 0, 0];
-
-    for (let i = 0; i < vertices.length; i += 3) {
-
-        v1_winding[0] = vertices[i];
-        v1_winding[1] = vertices[i + 1];
-        v1_winding[2] = vertices[i + 2];
-        //  = [vertices[i], vertices[i + 1], vertices[i + 2]];
-
-        if (i == vertices.length - 3) {
-            //v2 = [vertices[0], vertices[1], vertices[2]];
-            v2_winding[0] = vertices[0];
-            v2_winding[1] = vertices[1];
-            v2_winding[2] = vertices[2];
-        }
-        else {
-            //v2 = [vertices[i + 3], vertices[i + 4], vertices[i + 5]];
-            v2_winding[0] = vertices[i + 3];
-            v2_winding[1] = vertices[i + 4];
-            v2_winding[2] = vertices[i + 5];
-        }
-
-        if (v1_winding[1] <= P[1]) {
-            if (v2_winding[1] > P[1]) {
-                if (isLeft(v1_winding, v2_winding, P) > 0) wn++;
-            }
-        }
-
-        else {
-            if (v2_winding[1] <= P[1]) {
-                if (isLeft(v1_winding, v2_winding, P) < 0) wn--;
-            }
-        }
-    }
-    return wn;
-}
-
-
-
-// This is only needed to create the view matrix of the cursor that flattens the vertices then checks for inside-outside
-function createViewMatrixPTU(position, target, up) {
-    var c = m4.lookAt(position, target, up);
-    // This is the inverse that puts the camera at the origin and moves everything else into coordinates relative to the camera
-    return m4.inverse(c);
-}
-
-// function to test other functions
-function check_expect(f, input, expected_out) {
-
-    if (f(input) != expected_out) {
-        return false;
-    }
-
-    return true;
-};
-
-// TODO: probably no longer needed
-// Returns an arbitrary vector orthogonal to v
-function orthogonalVector(v) {
-
-    let v1 = [0, v[2], -v[1], 0];
-    let v2 = [-v[2], 0, v[0], 0];
-    let v3 = [-v[1], v[0], 0, 0];
-
-    //There are very small optimizations for this, but this is more readable and shouldn't matter too much in performance
-    let v1_m = vec3.length(v1);
-    let v2_m = vec3.length(v2);
-    let v3_m = vec3.length(v3);
-
-    if (v1_m >= v2_m && v1_m >= v3_m) return v1;
-    if (v2_m >= v1_m && v2_m >= v3_m) return v2;
-    if (v3_m >= v1_m && v3_m >= v2_m) return v3;
-
-}
-
-function clamp(x, min, max) {
-    return Math.min(Math.max(x, min), max);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// old
+*/
 
 /**
  * Tests whether a ray intersects with a triangle in the same 3d coordinate system

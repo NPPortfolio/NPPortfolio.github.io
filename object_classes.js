@@ -563,6 +563,10 @@ class Camera extends Object {
         this.target = [0, 0, 0];
         this.up = [0, 0, 0];
 
+        this.xAxis = [0, 0, 0];
+        this.yAxis = [0, 0, 0];
+        this.zAxis = [0, 0, 0];
+
         this.direction = [0, 0, 0];
 
         this.view_matrix = m4.identity();
@@ -634,12 +638,20 @@ class Camera extends Object {
 
     updateLookAt() {
 
-        let zAxis = vec3.subtract(this.position, this.target);
+        vec3.subtractTest2(this.position, this.target, this.zAxis);
+        vec3.normalizeTest(this.zAxis);
         // Have to do this when subtracting a vector from a point so the normalization doesn't get messed up
-        zAxis = vec3.normalize(zAxis);
-        let xAxis = vec3.normalize(vec3.cross(this.up, zAxis));
-        let yAxis = vec3.normalize(vec3.cross(zAxis, xAxis));
+        vec3.crossTest(this.up, this.zAxis, this.xAxis);
+        vec3.normalizeTest(this.xAxis);
 
+        vec3.crossTest(this.zAxis, this.xAxis, this.yAxis);
+        vec3.normalizeTest(this.yAxis);
+
+
+        //let xAxis = vec3.normalize(vec3.cross(this.up, zAxis));
+        //let yAxis = vec3.normalize(vec3.cross(zAxis, xAxis));
+
+        /*
         this.inverse_view_matrix = [
             xAxis[0], xAxis[1], xAxis[2], 0,
             yAxis[0], yAxis[1], yAxis[2], 0,
@@ -649,6 +661,24 @@ class Camera extends Object {
             this.position[2],
             1,
         ];
+        */
+
+        this.inverse_view_matrix[0] = this.xAxis[0];
+        this.inverse_view_matrix[1] = this.xAxis[1];
+        this.inverse_view_matrix[2] = this.xAxis[2];
+        this.inverse_view_matrix[3] = 0;
+        this.inverse_view_matrix[4] = this.yAxis[0];
+        this.inverse_view_matrix[5] = this.yAxis[1];
+        this.inverse_view_matrix[6] = this.yAxis[2];
+        this.inverse_view_matrix[7] = 0;
+        this.inverse_view_matrix[8] = this.zAxis[0];
+        this.inverse_view_matrix[9] = this.zAxis[1];
+        this.inverse_view_matrix[10] = this.zAxis[2];
+        this.inverse_view_matrix[11] = 0;
+        this.inverse_view_matrix[12] = this.position[0];
+        this.inverse_view_matrix[13] = this.position[1];
+        this.inverse_view_matrix[14] = this.position[2];
+        this.inverse_view_matrix[15] = 1;
 
         // This is the inverse that puts the camera at the origin and moves everything else into coordinates relative to the camera
         this.view_matrix = m4.inverse(this.inverse_view_matrix);
