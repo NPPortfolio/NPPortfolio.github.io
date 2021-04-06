@@ -390,7 +390,9 @@ class Mesh extends DrawableObject {
         C.activateProjectionMatrix();
 
         // In the future this value is the size of the cursor's boundingbox
+        //console.time("BFS");
         let test_indices = this.BFS(this.closest_index, 2);
+        //console.timeEnd("BFS");
 
         let changed_vertices = [];
 
@@ -772,12 +774,14 @@ class Camera extends Object {
     }
 
     zoom(amount) {
-        //move the position towards the target by the amount, making sure to no go past the target
+        //move the position towards the target by the amount, making sure to not go past the target
 
         let target_minus_position = vec3.subtract(this.target, this.position);
 
+        //TODO: fix when the target - position is extremely small, need betted bounds
+
         // If the position is already very close to the target and you want to zoom in even more, don't allow it
-        if (vec3.length(target_minus_position) < amount && amount > 0) {
+        if (vec3.length(target_minus_position) <= amount && amount > 0) {
             return;
         }
 

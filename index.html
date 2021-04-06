@@ -9,13 +9,19 @@
 </head>
 
 <body>
-    <canvas class="canvasStyle" id="glCanvas" onmousemove=mouseHandler(event) onmousedown=mouseHandler(event)
-        onmouseup=mouseHandler(event) onwheel=mouseHandler(event) width="640" height="640"
-        style="border:1px solid #000000;">
-    </canvas>
 
-    <p id=controls> LMB to sculpt, RMB to rotate camera, both to pan camera</p>
-    <p> Cursors: </p>
+    <div>
+    <canvas class="canvasStyle" id="glCanvas" onmousemove=mouseHandler(event) onmousedown=mouseHandler(event)
+        onmouseup=mouseHandler(event) onwheel=mouseHandler(event)></canvas>
+
+    <script>
+        document.getElementById("glCanvas").width = 900;//window.innerWidth - 400;
+        document.getElementById("glCanvas").height = 600;//window.innerHeight;
+    </script>
+    <div>
+
+    <label id=controls> LMB to sculpt, RMB to rotate camera, both to pan camera</label>
+    <label> Cursors: </label>
     <button id=cursor_circle onclick=buttonHandler(this.id)>
         O
     </button>
@@ -28,7 +34,7 @@
         ?
     </button>
 
-    <p> Functions: </p>
+    <label> Functions: </label>
     <label> Sculpt
         <input id="cursor_sculpt" type="checkbox" checked="checked" name="radio" onclick=buttonHandler(this.id)>
         <span></span>
@@ -58,8 +64,6 @@
     <canvas id="selectedColorCanvas" width="32" height="32" style="border:1px solid #000000;">
     </canvas>
 
-    <p id = "test1"> </p>
-
     <!-- Eventually do this automatically-->
     <script src="./object_classes.js"> </script>
     <script src="./vec3.js"> </script>
@@ -68,8 +72,8 @@
     <script src="./geometryCreator.js"> </script>
     <script src="./glState.js"> </script>
     <script src="./AccelerationStructure.js"> </script>
-    <script src = "./DataArrays.js"></script>
-    <script src = "./Raytracer.js"></script>
+    <script src="./DataArrays.js"></script>
+    <script src="./Raytracer.js"></script>
     <script src="app.js"> </script>
 
 </body>

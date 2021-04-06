@@ -225,7 +225,8 @@ function mouseHandler(e) {
             break
 
         case "wheel":
-            camera.zoom(-e.deltaY / 1);
+            //camera.zoom(-e.deltaY / 1);
+            camera.zoom(Math.sign(-e.deltaY));
             break;
 
     }
@@ -318,6 +319,18 @@ function updateColorSelectCanvas() {
 // need to set these because firefox doesn't when refreshing page
 document.getElementById("cursor_sculpt").checked = true;
 document.getElementById("cursor_color").checked = false;
+
+
+
+/*
+window.addEventListener('resize', resizeCanvas, false);
+
+function resizeCanvas(){
+    document.getElementById("glCanvas").width = window.innerWidth;
+    document.getElementById("glCanvas").height = window.innerHeight;
+
+}
+*/
 
 
 
