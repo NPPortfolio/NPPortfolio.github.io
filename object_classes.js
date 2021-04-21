@@ -190,7 +190,7 @@ class Mesh extends DrawableObject {
 
 
         // Hardcoded variables to determine the cursor functions, big task moving forward is to set up a system for this
-        this.sculpt = true;
+        this.sculpt = false;
         this.color = false;
 
 
@@ -208,6 +208,25 @@ class Mesh extends DrawableObject {
         this.cross = [0, 0, 0];
 
         this.new_normal = [0, 0, 0];
+
+
+        // BFS testing
+        this.visited = new Array();
+        this.queue = new Array();
+
+        this.start_vertex_position = [0, 0, 0];
+
+        this.distance = 0;
+
+        // This is the one to test the size limit on
+        this.current_vertex_edge_list = new Array();
+
+        this.next_vertex_index = 0;
+        this.next_vertex_position = [0, 0, 0];
+
+        this.start_next_delta = [0, 0, 0];
+
+        this.queue_index = null;
 
     }
 
@@ -271,6 +290,7 @@ class Mesh extends DrawableObject {
     // Breadth first search from the given vertex index and the maximum distance to cover -> could also pass a function to test instead of distance
     BFS(start_index, max_distance) {
 
+        /*
         let visited = new Array();
         let queue = new Array();
 
@@ -319,6 +339,50 @@ class Mesh extends DrawableObject {
         }
 
         return visited;
+        */
+
+
+        this.visited.length = 0;
+        this.queue.length = 0;
+
+        this.visited.push(start_index);
+        this.queue.push(start_index);
+
+        this.populateAllocatedVertexPosition(start_index, this.start_vertex_position);
+
+        this.current_vertex_edge_list.length = 0;
+
+        while (this.queue.length != 0) {
+
+            this.queue_index = this.queue.shift();
+
+            // here
+            this.current_vertex_edge_list = this.getVertexEdgeList(this.queue_index);
+
+            for (let i = 0; i < this.current_vertex_edge_list.length; i++) {
+
+                // here small
+                this.next_vertex_index = this.current_vertex_edge_list[i];
+                this.populateAllocatedVertexPosition(this.next_vertex_index, this.next_vertex_position);
+                //next_vertex_position = this.getVertexPosition(next_vertex_index);
+
+                if (this.visited.includes(this.next_vertex_index)) {
+                    continue;
+                }
+
+                vec3.subtractTest2(this.start_vertex_position, this.next_vertex_position, this.start_next_delta);
+
+                this.distance = vec3.length(this.start_next_delta);
+
+                if (this.distance < max_distance) {
+                    //here
+                    this.visited.push(this.next_vertex_index);
+                    this.queue.push(this.next_vertex_index);
+                }
+            }
+        }
+
+        return this.visited;
     }
 
 
@@ -411,10 +475,22 @@ class Mesh extends DrawableObject {
                 // TODO: need some sort of system to handle multiple different cursor functions at once
                 changed_vertices.push(index);
 
+
+                /*
+
+                For each active function tied to this mesh
+
+
+
+
+
+
+                */
+
                 // Hardcoded, future work on this project is a system to handle this
                 // also need to keep track of which functions update the normals and AS Grid
                 if (this.sculpt) {
-                    vec3.multiplyByConstantTest(C.normal, 1 / 32, delta_vector);
+                    vec3.multiplyByConstantTest(C.normal, 1 / 64, delta_vector);
                     this.addVertexPositionByIndex(index, delta_vector);
                 }
 
@@ -465,6 +541,11 @@ class Cursor extends DrawableObject {
 
         // The cursors aren't using the vertex normals, change later
         this.data = new DataArrays(data[0], data[1]);
+
+        // Ideally you wouldn't initialize everything again and only change the cursor's data, shortcut for now
+        // Maybe have pointer to state in class, or find way to send signal when vertex data updates
+        state.init(draw_list);
+        state.draw(draw_list);
     }
 
     setColor(color) {

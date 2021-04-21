@@ -236,60 +236,6 @@ function mouseHandler(e) {
     //console.timeEnd("draw");
 }
 
-function buttonHandler(id) {
-
-    switch (id) {
-
-        case "cursor_circle":
-            C.setData(geometryCreator.createCircle(1, 16));
-            break;
-
-        case "cursor_star":
-            C.setData(geometryCreator.createStar(1.5, 10));
-            break;
-
-        case "cursor_random":
-            C.setData(geometryCreator.createRandomCursor(2, 10));
-            break;
-
-        
-        // Hardcoded, new system is next step of project
-        // The ! isn't exactly right either because firefox keeps the state of the checkboxes when refreshing, while
-        // the code sets sculpt to true and color to false
-        case "cursor_sculpt":
-            S.sculpt = !S.sculpt;
-            break;
-        
-        case "cursor_color":
-            S.color = !S.color;
-            break;
-
-
-        // old system maybe needed later
-
-        /*
-    // TODO: there is a much better way to do this than manually set the flags for what the cursor function changes, need to package that info with
-    // the function itself somehow, but not sure how to handle that yet
-    case "cursor_sculpt":
-        C.cursor_function = C.move_along_normal;
-        C.position_update_flag = true;
-        C.color_update_flag = false;
-        break;
-
-    case "cursor_color":
-        C.cursor_function = C.set_color;
-        C.position_update_flag = false;
-        C.color_update_flag = true;
-        break;
-        */
-
-    }
-
-    // Ideally you wouldn't initialize everything again and only change the cursor's data, shortcut for now
-    state.init(draw_list);
-    state.draw(draw_list);
-}
-
 document.getElementById("red").addEventListener("change", function () {
     C.setRed(document.getElementById("red").value);
     updateColorSelectCanvas();
@@ -315,10 +261,6 @@ function updateColorSelectCanvas() {
     scc_ctx.fillRect(0, 0, scc_canvas.width, scc_canvas.height);
 
 }
-
-// need to set these because firefox doesn't when refreshing page
-document.getElementById("cursor_sculpt").checked = true;
-document.getElementById("cursor_color").checked = false;
 
 
 

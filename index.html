@@ -10,59 +10,51 @@
 
 <body>
 
-    <div>
-    <canvas class="canvasStyle" id="glCanvas" onmousemove=mouseHandler(event) onmousedown=mouseHandler(event)
-        onmouseup=mouseHandler(event) onwheel=mouseHandler(event)></canvas>
-
-    <script>
-        document.getElementById("glCanvas").width = 900;//window.innerWidth - 400;
-        document.getElementById("glCanvas").height = 600;//window.innerHeight;
-    </script>
-    <div>
-
-    <label id=controls> LMB to sculpt, RMB to rotate camera, both to pan camera</label>
-    <label> Cursors: </label>
-    <button id=cursor_circle onclick=buttonHandler(this.id)>
-        O
-    </button>
-
-    <button id=cursor_star onclick=buttonHandler(this.id)>
-        *
-    </button>
-
-    <button id=cursor_random onclick=buttonHandler(this.id)>
-        ?
-    </button>
-
-    <label> Functions: </label>
-    <label> Sculpt
-        <input id="cursor_sculpt" type="checkbox" checked="checked" name="radio" onclick=buttonHandler(this.id)>
-        <span></span>
-    </label>
-
-    <label> Color
-        <input id="cursor_color" type="checkbox" name="radio" onclick=buttonHandler(this.id)>
-        <span></span>
-    </label>
 
 
-    <form class="colorSlider">
-        <label for="red">Red: </label>
-        <input type="range" min="0" max="255" id="red" name="red"><br>
-    </form>
+    <!-- The left side of the screen div -->
+    <div id=canvasDiv>
 
-    <form class="colorSlider">
-        <label for="green">Green: </label>
-        <input type="range" min="0" max="255" id="green" name="green"><br>
-    </form>
+        <canvas class="canvasStyle" id="glCanvas" onmousemove=mouseHandler(event) onmousedown=mouseHandler(event)
+            onmouseup=mouseHandler(event) onwheel=mouseHandler(event) width=1280 height=720></canvas>
 
-    <form class="colorSlider">
-        <label for="blue">Blue: </label>
-        <input type="range" min="0" max="255" id="blue" name="blue"><br>
-    </form>
+    </div>
 
-    <canvas id="selectedColorCanvas" width="32" height="32" style="border:1px solid #000000;">
-    </canvas>
+    <!-- The right side of the screen div-->
+
+    <div id="settings" <label id=controls> LMB to sculpt, RMB to rotate camera, both to pan camera</label>
+
+        </br>
+        
+        <div id="ui_cursor_anchor">
+        </div>
+
+        </br>
+
+        <div id="ui_function_anchor">
+        </div>
+
+
+        <!-- Next front-end project is making this better-->
+        <form class="colorSlider">
+            <label for="red">Red: </label>
+            <input type="range" min="0" max="255" id="red" name="red"><br>
+        </form>
+
+        <form class="colorSlider">
+            <label for="green">Green: </label>
+            <input type="range" min="0" max="255" id="green" name="green"><br>
+        </form>
+
+        <form class="colorSlider">
+            <label for="blue">Blue: </label>
+            <input type="range" min="0" max="255" id="blue" name="blue"><br>
+        </form>
+
+        <canvas id="selectedColorCanvas" width="32" height="32" style="border:1px solid #000000;">
+        </canvas>
+
+    </div>
 
     <!-- Eventually do this automatically-->
     <script src="./object_classes.js"> </script>
@@ -75,6 +67,9 @@
     <script src="./DataArrays.js"></script>
     <script src="./Raytracer.js"></script>
     <script src="app.js"> </script>
+    <script src="UISelectionGrid.js"></script>
+
+    <!-- ... other HTML ... -->
 
 </body>
 
