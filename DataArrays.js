@@ -23,6 +23,9 @@ class DataArrays{
         
         this.colors = new Float32Array(this.colors);
 
+        // Messy testing
+        this.in_queue = new Array(this.positions.length/3);
+        this.in_queue.fill(false);
 
         this.indices = indices;
     }
@@ -82,6 +85,13 @@ class DataArrays{
         pos[0] = this.positions[i * 3];
         pos[1] = this.positions[i * 3 + 1];
         pos[2] = this.positions[i * 3 + 2];
+    }
+
+    setInQueue(i, bool){
+        this.in_queue[i] = bool;
+    }
+    clearInQueue(){
+        this.in_queue.fill(false);
     }
 
 }

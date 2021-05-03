@@ -210,9 +210,20 @@ class Mesh extends DrawableObject {
         this.new_normal = [0, 0, 0];
 
 
+
+
+
         // BFS testing
         this.visited = new Array();
         this.queue = new Array();
+        // This parameter needs work
+        this.queue_test = new FixedLengthQueue(128);
+        // The vertices that are within the BFS search
+        this.active_vertices = new FixedLengthArray(10000);
+
+
+
+
 
         this.start_vertex_position = [0, 0, 0];
 
@@ -272,6 +283,10 @@ class Mesh extends DrawableObject {
 
     isTriangleInOverflow(tri_index) {
         return this.data.isTriInOverflow(tri_index);
+    }
+
+    isVertexInQueue(i){
+        return this.data.isVertexInQueue(i);
     }
 
     setTriangleInOverflow(tri_index, bool) {
@@ -342,16 +357,67 @@ class Mesh extends DrawableObject {
         */
 
 
+        // Note: max was around 94
+
         this.visited.length = 0;
         this.queue.length = 0;
 
+        this.queue_test.clear();
+        this.active_vertices.clear();
+        this.data.clearInQueue();
+
         this.visited.push(start_index);
         this.queue.push(start_index);
+        this.queue_test.push(start_index);
 
         this.populateAllocatedVertexPosition(start_index, this.start_vertex_position);
 
-        this.current_vertex_edge_list.length = 0;
+        
+        while (this.queue_test.length() != 0){
 
+            this.queue_index = this.queue_test.shift();
+            this.current_vertex_edge_list = this.getVertexEdgeList(this.queue_index);
+
+            for (let i = 0; i < this.current_vertex_edge_list.length; i++) {
+
+                // here small
+                this.next_vertex_index = this.current_vertex_edge_list[i];
+                this.populateAllocatedVertexPosition(this.next_vertex_index, this.next_vertex_position);
+                //next_vertex_position = this.getVertexPosition(next_vertex_index);
+
+                /*
+                if (this.visited.includes(this.next_vertex_index)) {
+                    continue;
+                }
+                */
+
+                /*
+                if(this.active_vertices.includes(this.next_vertex_index)){
+                    continue;
+                }*/
+
+                if(this.data.in_queue[this.next_vertex_index]){
+                    continue;
+                }
+
+                vec3.subtractTest2(this.start_vertex_position, this.next_vertex_position, this.start_next_delta);
+
+                this.distance = vec3.length(this.start_next_delta);
+
+                if (this.distance < max_distance) {
+                    //here
+                    //this.visited.push(this.next_vertex_index);
+
+                    this.active_vertices.push(this.next_vertex_index);
+                    this.data.in_queue[this.next_vertex_index] = true;
+                    this.queue_test.push(this.next_vertex_index);
+                    //this.queue.push(this.next_vertex_index);
+                }
+            }
+
+        }
+        
+        /*
         while (this.queue.length != 0) {
 
             this.queue_index = this.queue.shift();
@@ -380,9 +446,12 @@ class Mesh extends DrawableObject {
                     this.queue.push(this.next_vertex_index);
                 }
             }
-        }
+        }*/
+        
 
-        return this.visited;
+        //return this.visited;
+        // If this works don't need this, just access them in the updateNormals and other functions
+        return this.active_vertices;
     }
 
 
@@ -458,18 +527,20 @@ class Mesh extends DrawableObject {
         let test_indices = this.BFS(this.closest_index, 2);
         //console.timeEnd("BFS");
 
+        // Another potential garbage collection fix after the test indices
         let changed_vertices = [];
 
         let point = [0, 0, 0];
 
         let delta_vector = [0, 0, 0];
 
-        for (let i = 0; i < test_indices.length; i++) {
+        for (let i = 0; i < test_indices.length(); i++) {
 
-            let index = test_indices[i];
-
+            //let index = test_indices[i];
+            let index = test_indices.get(i);
             //let point = this.getVertexPosition(test_indices[i]);
-            this.getVertexPositionFill(test_indices[i], point);
+            //this.getVertexPositionFill(test_indices[i], point);
+            this.getVertexPositionFill(index, point);
 
             if (C.isPointInside(point)) {
                 // TODO: need some sort of system to handle multiple different cursor functions at once
