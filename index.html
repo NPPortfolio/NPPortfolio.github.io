@@ -5,74 +5,63 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
-    <title>Sculpt App</title>
+    <title>Home</title>
 </head>
 
 <body>
 
+    <h1>NPPortfolio</h1>
+
+    <h2>Note to Employers</h2>
+
+    <p>
+        After an absence from programming, I have been working on this portfolio part-time in 2021 while filling in the
+        many gaps in my development experience, and intend it to be something that I can continue to add to as I go.
+        Ideally this learning process could be done in a working environment, so if any opportunities come up as I
+        continue with the portfolio it would be put on halt. If not then hopefully in the future it can show a more
+        established ability to develop for employers.
+    </p>
+
+    <h2 style = 'color:red'>Code Quality</h2>
+
+    <p>
+        At the time of writing this, the sculpting app is the only project on the portfolio and has a lot of serious problems in terms of code quality
+        and good practices. Some of these practices (like immutability) were forfeited for performance, but others 
+        (testing, specifications, functional vs. OOP, proper abstract data type representation, etc.) were implemented hastily or non-existent.
+        The future projects should have a much greater emphasis on these things, but I wanted to write this note here to say
+        that this would be an incredibly high priority in working-environment code, and the sculpting app's state right now does not reflect that.
+        It would be a good idea for me to go back and polish the project, but for now I would like to start fresh with some new,
+        maybe smaller and better documented projects.
+    </p>
+    <h2>Projects</h2>
+
+    <i>
+        For more information on each of the projects, refer to the repository readme's on the 
+        <a href='https://github.com/NPPortfolio/' target = 'blank_'>main github page</a>
+    </i>
+    <div class='flex-container'>
+
+        <a class='project-square' href = 'https://npportfolio.github.io/Sculpt' target = '_blank'>
+            <h3>Sculpt App Prototype</h3>
+            <img src='sculpt_thumbnail.png'></img>
+        </a>
 
 
-    <!-- The left side of the screen div -->
-    <div id=canvasDiv>
 
-        <canvas class="canvasStyle" id="glCanvas" onmousemove=mouseHandler(event) onmousedown=mouseHandler(event)
-            onmouseup=mouseHandler(event) onwheel=mouseHandler(event) width=1280 height=720></canvas>
+        <a class='project-square'>
+            <h3>Unfinished Blockchain App</h3>
+        </a>
+
+        <a class='project-square'>
+            <h3>...</h3>
+        </a>
+
+        <a class='project-square'>
+            <h3>...</h3>
+        </a>
+
 
     </div>
-
-    <!-- The right side of the screen div-->
-
-    <div id="settings" <label id=controls> LMB to sculpt, RMB to rotate camera, both to pan camera</label>
-
-        </br>
-        
-        <div id="ui_cursor_anchor">
-        </div>
-
-        </br>
-
-        <div id="ui_function_anchor">
-        </div>
-
-
-        <!-- Next front-end project is making this better-->
-        <form class="colorSlider">
-            <label for="red">Red: </label>
-            <input type="range" min="0" max="255" id="red" name="red"><br>
-        </form>
-
-        <form class="colorSlider">
-            <label for="green">Green: </label>
-            <input type="range" min="0" max="255" id="green" name="green"><br>
-        </form>
-
-        <form class="colorSlider">
-            <label for="blue">Blue: </label>
-            <input type="range" min="0" max="255" id="blue" name="blue"><br>
-        </form>
-
-        <canvas id="selectedColorCanvas" width="32" height="32" style="border:1px solid #000000;">
-        </canvas>
-
-    </div>
-
-    <!-- Eventually do this automatically-->
-    <!-- Also this needs to be ordered correctly, so not good do something else-->
-    <script src="./FixedLengthStructures.js"></script>
-    <script src="./object_classes.js"> </script>
-    <script src="./vec3.js"> </script>
-    <script src="./quat.js"> </script>
-    <script src="./m4.js"> </script>
-    <script src="./geometryCreator.js"> </script>
-    <script src="./glState.js"> </script>
-    <script src="./AccelerationStructure.js"> </script>
-    <script src="./DataArrays.js"></script>
-    <script src="./Raytracer.js"></script>
-    <script src="app.js"> </script>
-    <script src="UISelectionGrid.js"></script>
-    
-
-    <!-- ... other HTML ... -->
 
 </body>
 

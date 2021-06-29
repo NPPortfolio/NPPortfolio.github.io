@@ -1,159 +1,47 @@
 body{
+    font-family: Arial, sans-serif;
+}
 
-    height: 100vh;
-    width: 100vw;
-    margin:0;
-    padding:0;
-    background-color: rgb(50, 50, 50);
-    color: whitesmoke;
+h1{
+    text-align: center;
+}
+
+h3{
+    font-weight: normal;
+    text-align: center;
+    border-bottom: 1px solid lightgray;
+
+    margin: 0;
+    height: 10%;
+}
+
+.project-square{
     
-    scrollbar-width: none;  /* Firefox */
-    -ms-overflow-style: none;  /* IE and Edge */
-    overflow:hidden;
+    width: 256px;
+    height: 256px;
+    max-height: 256px;
+
+    border: 1px solid black;
+     
+    margin-right: 20px;
+    margin-left: 0px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+
+    text-decoration: none;
 }
 
-::-webkit-scrollbar{
-    display: none; /* Chrome */
+.project-square:hover{
+    border: 1px solid red;
 }
 
-
-#settings{
-    box-sizing: border-box;
-    border-left: 4px ridge orange;
-}
-
-#settings > div {
-    margin-left: 4px;
-}
-
-
-.activeSquare{
-    width:64px;
-    height: 64px;
-    background-color: rgb(100, 220, 220);
-
-}
-
-/*having a space is only meant for children, having a comma works for any element*/
-/*
-.activeSquare:hover + .ui_square_flexbox{
+.flex-container{
     display:flex;
-}
-
-.ui_square_flexbox:hover{
-    display:flex;
-}
-*/
-
-.ui_square_flexbox{
-
-    display:none;
     flex-wrap: wrap;
-    box-sizing: border-box;
+}
+
+img{
     width: 100%;
-    border-style: groove;
-    border-width: 4px;
-    border-color:darkcyan;
-    grid-template-columns: repeat(auto-fill, minmax(64px, 64px));
-
-    /*have to overwrite this to fit with the settings div*/
-    margin-left: 0px !important;
+    height: 90%;
+    object-fit: cover;
 }
-
-.unselectedSquare{
-    height: 64px;
-    width: 64px;
-    background-color: rgb(220, 220, 220);
-    border-color:rgb(200, 200, 200);
-    border-width: 1px;
-    border-style:dashed;
-
-    position:relative;
-    /* Animation */
-    left: 0px;
-    top: 0px;
-    transition: left 0.15s ease-out, top 0.15s ease-out, box-shadow 0.75s ease-out;
-    box-shadow: 0 0 0 0 cyan;
-}
-
-.unselectedSquare:hover{
-
-    /*           x    y   blur spread color*/
-    box-shadow: -3px -3px 15px 0px cyan;
-    z-index: 2;
-    position:relative;
-    left:4px;
-    top:4px;
-    transition: left 0s, top 0s;
-    /*background-color:darkcyan;*/
-}
-
-.selectedSquare{
-    height: 64px;
-    width: 64px;
-    position:relative;
-    border-color:rgb(200, 200, 200);
-    border-width: 1px;
-    border-style:dashed;
-    background-color: rgb(100, 220, 220);;
-}
-
-
-/* these two make up the whole screen horizontally, todo automatically set and resize */
-/* could do this by updating variable with a slider, use variable to set both widths */
-#canvasDiv{
-
-    /* This is 75 percent of parent, which is full screen body */
-    width: 75%;
-    height: 100%;
-
-    float: left;
-}
-
-#settings{
-    float:right;
-    width: 25%;
-    height: 100%;
-}
-
-.canvasStyle{
-
-    border: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgb(100, 100, 100);
-    margin-right: 5px;
-    
-}
-
-p, button, label, form{
-    margin-bottom: 3px;
-}
-
-label{
-    display: block;
-}
-
-/** Free code camp notes:
-
-look into em and rem to make label divs smaller
---variables
-hr line for separating options
-fixed positioning locks to browser window
-::before and ::after to link things together
-vw vh vmin vmax good
-use flex wrap for cursors and functions;
-repeat auto fill with grirepeat(auto-fill, minmax(60px, 60px));
-
-
-next topic: how to add lines of html with javascript
-
-Template literals
-import * as vec3 from vec3;
-
-render function in a class
-
-React: parameter in {} interpreted directly as javascript (integers and others)
-
-*/
