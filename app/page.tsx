@@ -1,18 +1,62 @@
 'use client'
 
+import { Project } from "next/dist/build/swc/types";
 import Image from "next/image";
 import {useState} from 'react'
 
+export const ProjectEnum = {
+  FRONT_END: "FRONT_END",
+  SOMETHING: "SOMETHING",
+  PRIMITIVE_ARPG: "PRIMITIVE_ARPG",
+} as const;
+
+export type ProjectEnumType = typeof ProjectEnum[keyof typeof ProjectEnum];
+
+function projectEnumBackgroundColor (projectEnum : ProjectEnumType) {
+
+  switch (projectEnum) {
+    case ProjectEnum.FRONT_END:
+      return 'darkred'
+    case ProjectEnum.SOMETHING:
+      return 'purple'
+    case ProjectEnum.PRIMITIVE_ARPG:
+      return 'darkGreen'
+  }
+}
+
+function projectEnumPage (projectEnum : ProjectEnumType) {
+  switch (projectEnum) {
+    case ProjectEnum.FRONT_END:
+      return (
+        <div>
+          <h1>
+            React Reward Wheel
+          </h1>
+          <p>
+            In addition to this portfolio site, created a reward wheel in react to learn/relearn the basics of front end web development
+          </p>
+          <p>
+            RUN IN NEW WINDOW BUTTON
+          </p>
+        </div>
+      )
+    case ProjectEnum.SOMETHING:
+      return 'purple'
+    case ProjectEnum.PRIMITIVE_ARPG:
+      return 'darkGreen'
+  }
+}
+
 export default function Root() {
 
-  const [currentTab, setCurrentTab] = useState(0)
+  const [currentTab, setCurrentTab] = useState<ProjectEnumType>(ProjectEnum.FRONT_END)
 
   // see note about context, this feels wrong having to repeat the function here
-  const [tabs, setTabs] = useState<Tab[]>([
-    {id : 0, name : "FRONT END", color : 'red', setCurrentTab : setCurrentTab},
-    {id : 1, name : "SOMETHING", color : 'purple', setCurrentTab : setCurrentTab},
+  const [tabs, setTabs] = useState<Tab<ProjectEnumType>[]>([
+    {e : ProjectEnum.FRONT_END, name : "FRONT_END", setCurrentTab : setCurrentTab},
+    {e : ProjectEnum.SOMETHING, name : "SOMETHING", setCurrentTab : setCurrentTab},
     // TODO: figure out how to make this tab a special case and have not just a solid color for a tab, or maybe each tab gets their own style
-    {id : 2, name : "PRIMITIVE_ARPG", color : 'darkGreen', setCurrentTab : setCurrentTab},
+    {e : ProjectEnum.PRIMITIVE_ARPG, name : "PRIMITIVE_ARPG", setCurrentTab : setCurrentTab},
   ])
 
   
@@ -21,50 +65,64 @@ export default function Root() {
     style = {{
       display : 'flex',
       flexDirection : 'column',
-      backgroundColor : 'navy',
+      backgroundColor : '#121212',
       alignContent : 'center',
       height : '100vh',
     }}>
       <div
       style = {{
         textAlign : 'center',
-        backgroundColor : 'black',
+        backgroundColor : '#121212',
       }}>
-        Some text thing here
-
+        <h1>
+          PORTFOLIO
+          <p>
+            Some text thing here
+          </p>
+          <p>
+            Some text thing here
+          </p>
+          <p>
+            Some text thing here
+          </p>
+          <p>
+            Some text thing here
+          </p>
+          <p>
+            Some text thing here
+          </p>
+          <p>
+            Some text thing here
+          </p>
+        </h1>
       </div>
       <TabBar tabs = {tabs} setCurrentTab = {setCurrentTab} />
-      <ProjectOverview/>
+      <ProjectOverview projectEnum={currentTab}/>
     </div>
   )
 }
 
-interface Tab {
-  id : number,
-  name : string,
-  color : string,
-  // TODO: look into context more, can have global things and no need to repeat this every tab?
-  setCurrentTab : React.Dispatch<React.SetStateAction<number>>
+interface ProjectOverviewProps {
+  projectEnum : ProjectEnumType,
 }
-
 // container that has description and images maybe
-function ProjectOverview() {
+function ProjectOverview({projectEnum} : ProjectOverviewProps) {
 
   return (
     <div
     style = {{
-      backgroundColor : 'darkorange',
+      backgroundColor : projectEnumBackgroundColor(projectEnum),
       flexGrow : '1',
     }}>
     </div>
   )
 }
 
-interface TabBarProps {
-  tabs : Tab[],
-  setCurrentTab : React.Dispatch<React.SetStateAction<number>>
+interface TabBarProps<T> {
+  tabs : Tab<T>[],
+  setCurrentTab : React.Dispatch<React.SetStateAction<ProjectEnumType>>
 }
-function TabBar({tabs, setCurrentTab} : TabBarProps) {
+function TabBar({tabs, setCurrentTab} : TabBarProps<ProjectEnumType>) {
 
   return (
     <div
@@ -74,10 +132,9 @@ function TabBar({tabs, setCurrentTab} : TabBarProps) {
       {
         tabs.map((tab) => (
           <Tab
-            key = {tab.id}
-            id = {tab.id}
+            key = {tab.e}
+            e = {tab.e}
             name = {tab.name}
-            color = {tab.color}
             setCurrentTab={setCurrentTab}
           />
         ))
@@ -86,22 +143,39 @@ function TabBar({tabs, setCurrentTab} : TabBarProps) {
   )
 }
 
-function Tab({id, name, color, setCurrentTab} : Tab) {
+interface Tab<T> {
+  e : T,
+  name : string,
+  // TODO: look into context more, can have global things and no need to repeat this every tab?
+  setCurrentTab : React.Dispatch<React.SetStateAction<T>>
+}
+
+function Tab({e, name, setCurrentTab} : Tab<ProjectEnumType>) {
 
   const handleMouseDown = () => {
-    setCurrentTab(id)
+    setCurrentTab(e)
   }
 
   return (
     <div
       style = {{
-        backgroundColor : color,
+        overflow : 'hidden',
+        paddingTop : '10px',
         flexGrow : '1',
-        textAlign : 'center',
-      }}
-      onMouseDown={handleMouseDown}
-    >
-      {name}
+      }}>
+      <div
+        style = {{
+          backgroundColor : projectEnumBackgroundColor(e),
+          textAlign : 'center',
+          fontWeight : 'bold',
+          fontSize : '1.2rem',
+          borderRadius: '40px 40px 0 0',
+          filter : 'drop-shadow(0 0 10px black)'// + color + ')'
+        }}
+        onMouseDown={handleMouseDown}
+      >
+        {name}
+      </div>
     </div>
   )
 }
