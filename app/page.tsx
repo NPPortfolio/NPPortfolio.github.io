@@ -29,21 +29,35 @@ function projectEnumPage (projectEnum : ProjectEnumType) {
     case ProjectEnum.FRONT_END:
       return (
         <div>
-          <h1>
-            React Reward Wheel
-          </h1>
-          <p>
-            In addition to this portfolio site, created a reward wheel in react to learn/relearn the basics of front end web development
-          </p>
-          <p>
-            RUN IN NEW WINDOW BUTTON
-          </p>
+          <div className = "text-center pt-2">
+            <h2 className = "rounded-t-lg inline-block bg-[#121212] text-center text-2xl font-bold px-2">
+              React Reward Wheel
+            </h2>
+          </div>
+          <div className = "bg-[#121212] px-4 mx-auto w-9/10 rounded-lg">
+            <p>
+              In addition to this portfolio site, created a reward wheel in react to learn/relearn the basics of front end web development
+            </p>
+            <p>
+              RUN IN NEW WINDOW BUTTON
+            </p>
+          </div>
         </div>
       )
     case ProjectEnum.SOMETHING:
-      return 'purple'
+      return (
+        <div>
+          COMING SOON
+        </div>
+      )
     case ProjectEnum.PRIMITIVE_ARPG:
-      return 'darkGreen'
+      return (
+        <div>
+          <h1>
+            PRIMITIVE ARPG
+          </h1>
+        </div>
+      )
   }
 }
 
@@ -53,10 +67,10 @@ export default function Root() {
 
   // see note about context, this feels wrong having to repeat the function here
   const [tabs, setTabs] = useState<Tab<ProjectEnumType>[]>([
-    {e : ProjectEnum.FRONT_END, name : "FRONT_END", setCurrentTab : setCurrentTab},
-    {e : ProjectEnum.SOMETHING, name : "SOMETHING", setCurrentTab : setCurrentTab},
+    {e : ProjectEnum.FRONT_END, setCurrentTab : setCurrentTab},
+    {e : ProjectEnum.SOMETHING, setCurrentTab : setCurrentTab},
     // TODO: figure out how to make this tab a special case and have not just a solid color for a tab, or maybe each tab gets their own style
-    {e : ProjectEnum.PRIMITIVE_ARPG, name : "PRIMITIVE_ARPG", setCurrentTab : setCurrentTab},
+    {e : ProjectEnum.PRIMITIVE_ARPG, setCurrentTab : setCurrentTab},
   ])
 
   
@@ -76,25 +90,25 @@ export default function Root() {
       }}>
         <h1>
           PORTFOLIO
-          <p>
-            Some text thing here
-          </p>
-          <p>
-            Some text thing here
-          </p>
-          <p>
-            Some text thing here
-          </p>
-          <p>
-            Some text thing here
-          </p>
-          <p>
-            Some text thing here
-          </p>
-          <p>
-            Some text thing here
-          </p>
         </h1>
+        <p>
+          <a href="https://github.com/npportfolio">https://github.com/npportfolio</a>
+        </p>
+        <p>
+          Some text thing here
+        </p>
+        <p>
+          Some text thing here
+        </p>
+        <p>
+          Some text thing here
+        </p>
+        <p>
+          Some text thing here
+        </p>
+        <p>
+          Some text thing here
+        </p>
       </div>
       <TabBar tabs = {tabs} setCurrentTab = {setCurrentTab} />
       <ProjectOverview projectEnum={currentTab}/>
@@ -114,6 +128,7 @@ function ProjectOverview({projectEnum} : ProjectOverviewProps) {
       backgroundColor : projectEnumBackgroundColor(projectEnum),
       flexGrow : '1',
     }}>
+      {projectEnumPage(projectEnum)}
     </div>
   )
 }
@@ -134,7 +149,6 @@ function TabBar({tabs, setCurrentTab} : TabBarProps<ProjectEnumType>) {
           <Tab
             key = {tab.e}
             e = {tab.e}
-            name = {tab.name}
             setCurrentTab={setCurrentTab}
           />
         ))
@@ -145,12 +159,11 @@ function TabBar({tabs, setCurrentTab} : TabBarProps<ProjectEnumType>) {
 
 interface Tab<T> {
   e : T,
-  name : string,
   // TODO: look into context more, can have global things and no need to repeat this every tab?
   setCurrentTab : React.Dispatch<React.SetStateAction<T>>
 }
 
-function Tab({e, name, setCurrentTab} : Tab<ProjectEnumType>) {
+function Tab({e, setCurrentTab} : Tab<ProjectEnumType>) {
 
   const handleMouseDown = () => {
     setCurrentTab(e)
@@ -174,7 +187,7 @@ function Tab({e, name, setCurrentTab} : Tab<ProjectEnumType>) {
         }}
         onMouseDown={handleMouseDown}
       >
-        {name}
+        {ProjectEnum[e]}
       </div>
     </div>
   )
