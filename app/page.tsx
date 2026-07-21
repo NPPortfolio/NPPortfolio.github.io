@@ -34,13 +34,25 @@ function projectEnumPage (projectEnum : ProjectEnumType) {
               React Reward Wheel
             </h2>
           </div>
-          <div className = "bg-[#121212] px-4 mx-auto w-9/10 rounded-lg">
+          <div className = "bg-[#121212] px-4 mx-auto w-9/10 rounded-lg pt-4">
             <p>
-              In addition to this portfolio site, created a reward wheel in react to learn/relearn the basics of front end web development
+              In addition to this portfolio site, created a reward wheel using React to learn/relearn the basics of front end web development
             </p>
-            <p>
-              RUN IN NEW WINDOW BUTTON
-            </p>
+            <div style ={{
+              display : 'flex',
+              justifyContent : 'center',
+            }}>
+              <a
+                href = "https://npportfolio.github.io/React_Reward_Wheel"
+                target="_blank" 
+                rel="noopener noreferrer"
+                className = "runInNewWindowButton"
+                style = {{
+                  backgroundColor : projectEnumBackgroundColor(projectEnum),
+                }}>
+                RUN IN NEW WINDOW
+              </a>
+            </div>
           </div>
         </div>
       )
@@ -175,6 +187,8 @@ function Tab({e, setCurrentTab} : Tab<ProjectEnumType>) {
         overflow : 'hidden',
         paddingTop : '10px',
         flexGrow : '1',
+        flexShrink : '1',
+        flexBasis : '0',
       }}>
       <div
         style = {{

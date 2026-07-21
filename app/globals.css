@@ -34,3 +34,16 @@ body {
     @apply text-2xl font-bold;
   }
 }*/
+
+.runInNewWindowButton {
+  border-radius : 1rem;
+  margin-bottom : 1rem;
+  margin-top : 1rem;
+  padding-left : 1rem;
+  padding-right : 1rem;
+  padding-top : 1rem;
+  padding-bottom : 1rem;
+}
+/*
+use this for hover because you cant define hover style inline?
+background-color : var(--background-color)*/
