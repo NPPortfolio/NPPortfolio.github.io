@@ -47,7 +47,7 @@ function projectEnumPage (projectEnum : ProjectEnumType) {
     case ProjectEnum.SOMETHING:
       return (
         <div>
-          COMING SOON
+          COMING SOON test
         </div>
       )
     case ProjectEnum.PRIMITIVE_ARPG:
