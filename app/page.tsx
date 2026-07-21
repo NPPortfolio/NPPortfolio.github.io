@@ -38,7 +38,8 @@ function projectEnumPage (projectEnum : ProjectEnumType) {
             <p>
               In addition to this portfolio site, created a reward wheel using React to learn/relearn the basics of front end web development
             </p>
-            <div style ={{
+            <div 
+            style ={{
               display : 'flex',
               justifyContent : 'center',
             }}>
@@ -48,8 +49,10 @@ function projectEnumPage (projectEnum : ProjectEnumType) {
                 rel="noopener noreferrer"
                 className = "runInNewWindowButton"
                 style = {{
-                  backgroundColor : projectEnumBackgroundColor(projectEnum),
-                }}>
+                  '--background-color' : projectEnumBackgroundColor(projectEnum),
+                  //backgroundColor : projectEnumBackgroundColor(projectEnum),
+                } as React.CSSProperties}
+                >
                 RUN IN NEW WINDOW
               </a>
             </div>
@@ -191,6 +194,7 @@ function Tab({e, setCurrentTab} : Tab<ProjectEnumType>) {
         flexBasis : '0',
       }}>
       <div
+        className="rainbowBackground"
         style = {{
           backgroundColor : projectEnumBackgroundColor(e),
           textAlign : 'center',

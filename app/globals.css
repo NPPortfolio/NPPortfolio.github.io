@@ -43,7 +43,37 @@ body {
   padding-right : 1rem;
   padding-top : 1rem;
   padding-bottom : 1rem;
+  background-color : var(--background-color);
+  filter: drop-shadow(0 0 0.5rem white);
+  font-weight : bold;
+  transition-duration: 0.5s;
+  transition-timing-function: ease-out;
 }
-/*
-use this for hover because you cant define hover style inline?
-background-color : var(--background-color)*/
+
+.runInNewWindowButton:hover {
+  /*background-color : color-mix(in srgb, var(--background-color) 90%, white 10%);*/
+  background-color : oklch(from var(--background-color) l calc(c + 1) h);
+  filter: drop-shadow(0 0 1rem white);
+  transition-duration : 0s;
+  transition-delay : 0s;
+}
+
+.rainbowBackground {
+  background : linear-gradient(
+    90deg,
+    #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff,
+    #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8b00ff
+  );
+  background-size : 200% 100%;
+  color : black;
+  animation : scroll-horizontal 5s linear infinite;
+}
+
+@keyframes scroll-horizontal {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: -200% 0%;
+  }
+}
