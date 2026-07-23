@@ -23,6 +23,7 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Verdana, Helvetica, sans-serif;
+  font-size: large;
 }
 
 /*
@@ -76,4 +77,25 @@ body {
   100% {
     background-position: -200% 0%;
   }
+}
+
+.greenCheckered {
+  background-color: darkgreen;
+
+  background-image: 
+    linear-gradient(45deg, green 25%, transparent 25%, transparent 75%, green 75%),
+    linear-gradient(45deg, green 25%, transparent 25%, transparent 75%, green 75%);
+
+  background-position: 0 0, 1rem 1rem;
+
+  background-size: 2rem 2rem;
+
+  background-attachment: fixed;
+}
+
+.githubImage {
+  display: block;
+  margin: auto;
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
 }

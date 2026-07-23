@@ -4,6 +4,62 @@ import { Project } from "next/dist/build/swc/types";
 import Image from "next/image";
 import {useState} from 'react'
 
+export default function Root() {
+
+  const [currentTab, setCurrentTab] = useState<ProjectEnumType>(ProjectEnum.FRONT_END)
+
+  // see note about context, this feels wrong having to repeat the function here
+  const [tabs, setTabs] = useState<Tab<ProjectEnumType>[]>([
+    {e : ProjectEnum.FRONT_END, setCurrentTab : setCurrentTab},
+    {e : ProjectEnum.SOMETHING, setCurrentTab : setCurrentTab},
+    // TODO: figure out how to make this tab a special case and have not just a solid color for a tab, or maybe each tab gets their own style
+    {e : ProjectEnum.PRIMITIVE_ARPG, setCurrentTab : setCurrentTab},
+  ])
+
+  
+  return (
+    <div
+    style = {{
+      display : 'flex',
+      flexDirection : 'column',
+      backgroundColor : '#121212',
+      alignContent : 'center',
+      height : '100vh',
+    }}>
+      <div
+      style = {{
+        textAlign : 'center',
+        backgroundColor : '#121212',
+      }}>
+        <h1 className="text-4xl font-bold mt-2 mb-2">
+          Nicholas Paganetti Portfolio
+        </h1>
+        <p>
+          I'm an independent game/game engine programmer who is looking for a role in the Software Engineering industry
+        </p>     
+        <a href="https://github.com/npportfolio" target="_blank" rel="noopener noreferrer" className="inline-flex w-1/10">
+          <img src="/Github_Lockup_White_Clearspace.svg" className="githubImage"></img>
+        </a>
+        <p>
+          <span className = "text-xl font-bold">CONTACT: </span>
+          napaganetti@gmail.com
+        </p>
+        <p>
+          <span className = "text-xl font-bold">EDUCATION: </span>Bachelor of Science in Computer Science, Worcester Polytechnic Institute
+        </p>
+        <p>
+          Some text thing here
+        </p>
+        <p>
+          Some text thing here
+        </p>
+      </div>
+      <TabBar tabs = {tabs} setCurrentTab = {setCurrentTab} />
+      <ProjectOverview projectEnum={currentTab}/>
+    </div>
+  )
+}
+
 export const ProjectEnum = {
   FRONT_END: "FRONT_END",
   SOMETHING: "SOMETHING",
@@ -21,6 +77,16 @@ function projectEnumBackgroundColor (projectEnum : ProjectEnumType) {
       return 'purple'
     case ProjectEnum.PRIMITIVE_ARPG:
       return 'darkGreen'
+  }
+}
+
+function projectEnumClassName (projectEnum : ProjectEnumType) {
+
+  switch (projectEnum) {
+    case ProjectEnum.PRIMITIVE_ARPG:
+      return 'greenCheckered'
+    default:
+      return ''
   }
 }
 
@@ -76,69 +142,17 @@ function projectEnumPage (projectEnum : ProjectEnumType) {
   }
 }
 
-export default function Root() {
-
-  const [currentTab, setCurrentTab] = useState<ProjectEnumType>(ProjectEnum.FRONT_END)
-
-  // see note about context, this feels wrong having to repeat the function here
-  const [tabs, setTabs] = useState<Tab<ProjectEnumType>[]>([
-    {e : ProjectEnum.FRONT_END, setCurrentTab : setCurrentTab},
-    {e : ProjectEnum.SOMETHING, setCurrentTab : setCurrentTab},
-    // TODO: figure out how to make this tab a special case and have not just a solid color for a tab, or maybe each tab gets their own style
-    {e : ProjectEnum.PRIMITIVE_ARPG, setCurrentTab : setCurrentTab},
-  ])
-
-  
-  return (
-    <div
-    style = {{
-      display : 'flex',
-      flexDirection : 'column',
-      backgroundColor : '#121212',
-      alignContent : 'center',
-      height : '100vh',
-    }}>
-      <div
-      style = {{
-        textAlign : 'center',
-        backgroundColor : '#121212',
-      }}>
-        <h1>
-          PORTFOLIO
-        </h1>
-        <p>
-          <a href="https://github.com/npportfolio">https://github.com/npportfolio</a>
-        </p>
-        <p>
-          Some text thing here
-        </p>
-        <p>
-          Some text thing here
-        </p>
-        <p>
-          Some text thing here
-        </p>
-        <p>
-          Some text thing here
-        </p>
-        <p>
-          Some text thing here
-        </p>
-      </div>
-      <TabBar tabs = {tabs} setCurrentTab = {setCurrentTab} />
-      <ProjectOverview projectEnum={currentTab}/>
-    </div>
-  )
-}
-
 interface ProjectOverviewProps {
   projectEnum : ProjectEnumType,
 }
 // container that has description and images maybe
 function ProjectOverview({projectEnum} : ProjectOverviewProps) {
 
+  // TODO: have the videos of the game as the background, which also solves the grid pattern being not lined up
+
   return (
     <div
+    className={projectEnumClassName(projectEnum)}
     style = {{
       backgroundColor : projectEnumBackgroundColor(projectEnum),
       flexGrow : '1',
@@ -184,6 +198,13 @@ function Tab({e, setCurrentTab} : Tab<ProjectEnumType>) {
     setCurrentTab(e)
   }
 
+
+  let className = ""
+
+  if (e == ProjectEnum.PRIMITIVE_ARPG) {
+    className = "greenCheckered"
+  }
+
   return (
     <div
       style = {{
@@ -194,7 +215,7 @@ function Tab({e, setCurrentTab} : Tab<ProjectEnumType>) {
         flexBasis : '0',
       }}>
       <div
-        className="rainbowBackground"
+        className={projectEnumClassName(e)}
         style = {{
           backgroundColor : projectEnumBackgroundColor(e),
           textAlign : 'center',
