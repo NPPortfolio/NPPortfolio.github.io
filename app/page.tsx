@@ -4,6 +4,11 @@ import { Project } from "next/dist/build/swc/types";
 import Image from "next/image";
 import {useState} from 'react'
 
+//import githubImage from '../public/GitHub_Lockup_White_Clearspace.svg'
+const prefix = process.env.NODE_ENV === 'production' ? '/npportfolio.github.io' : '';
+
+console.log(prefix)
+
 export default function Root() {
 
   const [currentTab, setCurrentTab] = useState<ProjectEnumType>(ProjectEnum.FRONT_END)
@@ -38,7 +43,7 @@ export default function Root() {
           I'm an independent game/game engine programmer who is looking for a role in the Software Engineering industry
         </p>     
         <a href="https://github.com/npportfolio" target="_blank" rel="noopener noreferrer" className="inline-flex w-1/10">
-          <img src="/Github_Lockup_White_Clearspace.svg" className="githubImage"></img>
+          <img src = {`${prefix}/Github_Lockup_White_Clearspace.svg`} className="githubImage"></img>
         </a>
         <p>
           <span className = "text-xl font-bold">CONTACT: </span>
