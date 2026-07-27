@@ -39,9 +39,9 @@ export default function Root() {
         </h1>
         <p>
           I'm an independent game/game engine programmer who is looking for a role in the Software Engineering industry
-        </p>     
+        </p>
         <a href="https://github.com/npportfolio" target="_blank" rel="noopener noreferrer" className="inline-flex w-1/10">
-          <img src = 'npportfolio.github.io/Github_Lockup_White_Clearspace.svg' className="githubImage"></img>
+          <img src = '/Github_Lockup_White_Clearspace.svg' className="githubImage"></img>
         </a>
         <p>
           <span className = "text-xl font-bold">CONTACT: </span>
