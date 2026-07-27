@@ -43,6 +43,8 @@ export default function Root() {
         <a href="https://github.com/npportfolio" target="_blank" rel="noopener noreferrer" className="inline-flex w-1/10">
           <img src = 'Github_Lockup_White_Clearspace.svg' className="githubImage"></img>
           <img src = 'globe.svg' className="githubImage"></img>
+          <img src = 'globe2.svg' className="githubImage"></img>
+          <img src = 'dummy.svg' className="githubImage"></img>
           <img src = 'vercel.svg' className="githubImage"></img>
         </a>
         <p>
