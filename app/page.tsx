@@ -41,7 +41,7 @@ export default function Root() {
           I'm an independent game/game engine programmer who is looking for a role in the Software Engineering industry
         </p>
         <a href="https://github.com/npportfolio" target="_blank" rel="noopener noreferrer" className="inline-flex w-1/10">
-          <img src = 'Github_Lockup_White_Clearspace.svg' className="githubImage"></img>
+          <img src = 'GTest.svg' className="githubImage"></img>
           <img src = 'globe.svg' className="githubImage"></img>
           <img src = 'globe2.svg' className="githubImage"></img>
           <img src = 'dummy.svg' className="githubImage"></img>
