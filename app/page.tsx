@@ -41,11 +41,8 @@ export default function Root() {
           I'm an independent game/game engine programmer who is looking for a role in the Software Engineering industry
         </p>
         <a href="https://github.com/npportfolio" target="_blank" rel="noopener noreferrer" className="inline-flex w-1/10">
+          {/* For some reason the filename wasn't working with underscores I think, even without starting the name with it */}
           <img src = 'GTest.svg' className="githubImage"></img>
-          <img src = 'globe.svg' className="githubImage"></img>
-          <img src = 'globe2.svg' className="githubImage"></img>
-          <img src = 'dummy.svg' className="githubImage"></img>
-          <img src = 'vercel.svg' className="githubImage"></img>
         </a>
         <p>
           <span className = "text-xl font-bold">CONTACT: </span>
